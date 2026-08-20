@@ -1,10 +1,10 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Epi {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        Task[] tasks = new Task[100];
-        int taskCount = 0;
+        ArrayList<Task> tasks = new ArrayList<>();
         String banner = "  ______       _ \n"
                 + " |  ____|     (_)\n"
                 + " | |__   _ __  _ \n"
@@ -28,38 +28,59 @@ public class Epi {
                     System.out.println("Meow for now. See you later!");
                     break;
                 } else if (command.equals("list")) {
-                    System.out.println("     Here is you pile of tasks:");
-                    for (int i = 0; i < taskCount; i++) {
-                        System.out.println("   " + (i + 1) + ". " + tasks[i].toString());
+                    if (tasks.size() == 0) {
+                        throw new EpiException("Purr! There is no task in your list");
                     }
+                    System.out.println("     Here is you pile of tasks:");
+                    for (int i = 0; i < tasks.size(); i++) {
+                        System.out.println("   " + (i + 1) + ". " + tasks.get(i).toString());
+                    }
+                } else if (command.equals("delete")) {
+                    if (argument.isEmpty()) {
+                        throw new EpiException("You need to give me a task number to delete, human.");
+                    }
+                    int taskIdx = Integer.parseInt(argument) - 1;
+                    if (tasks.size() == 0) {
+                        throw new EpiException("Cannot! You don't even have a single task");
+                    }
+                    if (taskIdx < 0 || taskIdx >= tasks.size()) {
+                        throw new EpiException("That task number doesn't exist in my memory!");
+                    }
+                    tasks.remove(taskIdx);
+                    System.out.println("Noted, I'll remove that from the task pile");
+                    int totalTaskNow = tasks.size();
+                    System.out.println("Now you have " + totalTaskNow + " tasks in the list");
+
                 } else if (command.equals("mark") || command.equals("unmark")) {
                     if (argument.isEmpty()) {
                         throw new EpiException("You need to give me a task number, human.");
                     }
 
                     int taskIdx = Integer.parseInt(argument) - 1;
-                    if (taskIdx < 0 || taskIdx >= taskCount) {
+                    if (tasks.size() == 0) {
+                        throw new EpiException("Cannot! You don't even have a single task");
+                    }
+                    if (taskIdx < 0 || taskIdx >= tasks.size()) {
                         throw new EpiException("That task number doesn't exist in my memory!");
                     }
 
                     if (command.equals("mark")) {
-                        tasks[taskIdx].markAsDone();
+                        tasks.get(taskIdx).markAsDone();
                         System.out.println("     About time you finished something. I've marked it as done:");
                     } else {
-                        tasks[taskIdx].markAsUndone();
+                        tasks.get(taskIdx).markAsUndone();
                         System.out.println("     Slacking off, are we? I've marked this as not done:");
                     }
-                    System.out.println("       " + tasks[taskIdx].toString());
+                    System.out.println("       " + tasks.get(taskIdx).toString());
                 } else if (command.equals("todo")) {
                     if (argument.isEmpty()) {
                         throw new EpiException("The description of a todo cannot be empty");
                     }
                     String description = argument.trim();
-                    tasks[taskCount] = new Todo(description);
+                    tasks.add(new Todo(description));
                     System.out.println("     More work? Fine. I have added this task:");
-                    System.out.println("       " + tasks[taskCount].toString());
-                    taskCount++;
-                    System.out.println("     Now you have " + taskCount + " tasks in the list.");
+                    System.out.println("       " + tasks.get(tasks.size() - 1).toString());
+                    System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
                 } else if (command.equals("deadline")) {
                     if (argument.isEmpty()) {
                         throw new EpiException("The description of a deadline cannot be empty!");
@@ -70,11 +91,10 @@ public class Epi {
                     }
                     String description = deadlineParts[0].trim();
                     String by = deadlineParts[1].trim();
-                    tasks[taskCount] = new Deadline(description, by);
+                    tasks.add(new Deadline(description, by));
                     System.out.println("     A deadline? Better not miss it. I have added this task:");
-                    System.out.println("       " + tasks[taskCount].toString());
-                    taskCount++;
-                    System.out.println("     Now you have " + taskCount + " tasks in the list.");
+                    System.out.println("       " + tasks.get(tasks.size() - 1).toString());
+                    System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
 
                 } else if (command.equals("event")) {
                     if (argument.isEmpty()) {
@@ -93,11 +113,10 @@ public class Epi {
 
                     String from = timeparts[0].trim();
                     String to = timeparts[1].trim();
-                    tasks[taskCount] = new Event(description, from, to);
+                    tasks.add(new Event(description, from, to));
                     System.out.println("     An event? I hope there will be treats. I have added this task:");
-                    System.out.println("       " + tasks[taskCount].toString());
-                    taskCount++;
-                    System.out.println("     Now you have " + taskCount + " tasks in the list.");
+                    System.out.println("       " + tasks.get(tasks.size() - 1).toString());
+                    System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
                 } else {
                     throw new EpiException("I do not understand what that means, Human.");
                 }

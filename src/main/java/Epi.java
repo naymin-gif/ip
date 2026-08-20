@@ -3,7 +3,7 @@ import java.util.Scanner;
 public class Epi {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        String[] tasks = new String[100];
+        Task[] tasks = new Task[100];
         int taskCount = 0;
         String banner = "  ______       _ \n"
                 + " |  ____|     (_)\n"
@@ -24,12 +24,20 @@ public class Epi {
                 break;
             } else if (input.equalsIgnoreCase("list")) {
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println("   " + (i + 1) + ". " + tasks[i]);
+                    System.out.println("     Behold, your endless mountain of chores:");
+                    System.out.println("   " + (i + 1) + ". " + tasks[i].toString());
                 }
+            } else if (input.startsWith("mark ")) {
+                int taskIdx = Integer.parseInt(input.substring(5)) - 1;
+                tasks[taskIdx].markAsDone();
+                System.out.println("     About time you finished something. I've marked it as done:");
+                System.out.println("       " + tasks[taskIdx].toString());
             } else {
-                tasks[taskCount] = input;
+                tasks[taskCount] = new Task(input);
+
+                System.out.println("     Ugh, fine. Added:");
+                System.out.println("       " + tasks[taskCount].toString());
                 taskCount++;
-                System.out.println("Added: " + input);
             }
         }
         scanner.close();

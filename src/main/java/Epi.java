@@ -19,58 +19,92 @@ public class Epi {
 
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
-            String[] commandParts = input.trim().split("\\s+", 2);
-            String command = commandParts[0].toLowerCase();
-            String argument = commandParts.length > 1? commandParts[1]: "";
-            if (command.equals("bye")) {
-                System.out.println("Meow for now. See you later!");
-                break;
-            } else if (command.equals("list")) {
-                System.out.println("     Behold, your endless mountain of chores:");
-                for (int i = 0; i < taskCount; i++) {
-                    System.out.println("   " + (i + 1) + ". " + tasks[i].toString());
-                }
-            } else if (command.equals("mark")) {
-                int taskIdx = Integer.parseInt(commandParts[1]) - 1;
-                tasks[taskIdx].markAsDone();
-                System.out.println("     About time you finished something. I've marked it as done:");
-                System.out.println("       " + tasks[taskIdx].toString());
-            } else if (command.equals("unmark")) {
-                int taskIdx = Integer.parseInt(commandParts[1]) - 1;
-                tasks[taskIdx].markAsUndone();
-                System.out.println("     Slacking off, are we? I've marked this as not done:");
-                System.out.println("       " + tasks[taskIdx].toString());
-            } else if (command.equals("todo")) {
-                String description = argument.trim();
-                tasks[taskCount] = new Todo(description);
-                System.out.println("     More work? Fine. I have added this task:");
-                System.out.println("       " + tasks[taskCount].toString());
-                taskCount++;
-                System.out.println("     Now you have " + taskCount + " tasks in the list.");
-            } else if (command.equals("deadline")) {
-                String[] deadlineParts = argument.split(" /by ", 2);
-                String description = deadlineParts[0].trim();
-                String by = deadlineParts[1].trim();
-                tasks[taskCount] = new Deadline(description, by);
-                System.out.println("     A deadline? Better not miss it. I have added this task:");
-                System.out.println("       " + tasks[taskCount].toString());
-                taskCount++;
-                System.out.println("     Now you have " + taskCount + " tasks in the list.");
 
-            } else if (command.equals("event")) {
-                String[] eventParts = argument.split(" /from ", 2);
-                String description = eventParts[0].trim();
-                String[] timeparts = eventParts[1].split(" /to ", 2);
-                String from = timeparts[0].trim();
-                String to = timeparts[1].trim();
-                tasks[taskCount] = new Event(description, from, to);
-                System.out.println("     An event? I hope there will be treats. I have added this task:");
-                System.out.println("       " + tasks[taskCount].toString());
-                taskCount++;
-                System.out.println("     Now you have " + taskCount + " tasks in the list.");
-            }
-            else {
-                System.out.println("     I do not understand what this mean, Human.");
+            try {
+                String[] commandParts = input.trim().split("\\s+", 2);
+                String command = commandParts[0].toLowerCase();
+                String argument = commandParts.length > 1 ? commandParts[1] : "";
+                if (command.equals("bye")) {
+                    System.out.println("Meow for now. See you later!");
+                    break;
+                } else if (command.equals("list")) {
+                    System.out.println("     Here is you pile of tasks:");
+                    for (int i = 0; i < taskCount; i++) {
+                        System.out.println("   " + (i + 1) + ". " + tasks[i].toString());
+                    }
+                } else if (command.equals("mark") || command.equals("unmark")) {
+                    if (argument.isEmpty()) {
+                        throw new EpiException("You need to give me a task number, human.");
+                    }
+
+                    int taskIdx = Integer.parseInt(argument) - 1;
+                    if (taskIdx < 0 || taskIdx >= taskCount) {
+                        throw new EpiException("That task number doesn't exist in my memory!");
+                    }
+
+                    if (command.equals("mark")) {
+                        tasks[taskIdx].markAsDone();
+                        System.out.println("     About time you finished something. I've marked it as done:");
+                    } else {
+                        tasks[taskIdx].markAsUndone();
+                        System.out.println("     Slacking off, are we? I've marked this as not done:");
+                    }
+                    System.out.println("       " + tasks[taskIdx].toString());
+                } else if (command.equals("todo")) {
+                    if (argument.isEmpty()) {
+                        throw new EpiException("The description of a todo cannot be empty");
+                    }
+                    String description = argument.trim();
+                    tasks[taskCount] = new Todo(description);
+                    System.out.println("     More work? Fine. I have added this task:");
+                    System.out.println("       " + tasks[taskCount].toString());
+                    taskCount++;
+                    System.out.println("     Now you have " + taskCount + " tasks in the list.");
+                } else if (command.equals("deadline")) {
+                    if (argument.isEmpty()) {
+                        throw new EpiException("The description of a deadline cannot be empty!");
+                    }
+                    String[] deadlineParts = argument.split(" /by ", 2);
+                    if (deadlineParts.length < 2 || deadlineParts[0].trim().isEmpty() || deadlineParts[1].trim().isEmpty()) {
+                        throw new EpiException("Invalid format! Use: deadline <task> /by <time>");
+                    }
+                    String description = deadlineParts[0].trim();
+                    String by = deadlineParts[1].trim();
+                    tasks[taskCount] = new Deadline(description, by);
+                    System.out.println("     A deadline? Better not miss it. I have added this task:");
+                    System.out.println("       " + tasks[taskCount].toString());
+                    taskCount++;
+                    System.out.println("     Now you have " + taskCount + " tasks in the list.");
+
+                } else if (command.equals("event")) {
+                    if (argument.isEmpty()) {
+                        throw new EpiException("The description of a event cannot be empty!");
+                    }
+                    String[] eventParts = argument.split(" /from ", 2);
+                    if (eventParts.length < 2 || eventParts[0].trim().isEmpty()) {
+                        throw new EpiException("Invalid format! Missing description or '/from'. Use: event <task> /from <start> /to <end>");
+                    }
+                    String description = eventParts[0].trim();
+                    String[] timeparts = eventParts[1].split(" /to ", 2);
+
+                    if (timeparts.length < 2 || timeparts[0].trim().isEmpty() || timeparts[1].trim().isEmpty()) {
+                        throw new EpiException("Invalid format! Missing times. Use: event <task> /from <start> /to <end>");
+                    }
+
+                    String from = timeparts[0].trim();
+                    String to = timeparts[1].trim();
+                    tasks[taskCount] = new Event(description, from, to);
+                    System.out.println("     An event? I hope there will be treats. I have added this task:");
+                    System.out.println("       " + tasks[taskCount].toString());
+                    taskCount++;
+                    System.out.println("     Now you have " + taskCount + " tasks in the list.");
+                } else {
+                    throw new EpiException("I do not understand what that means, Human.");
+                }
+            } catch (EpiException e) {
+                System.out.println(e.getMessage());
+            } catch (NumberFormatException e) {
+                System.out.println("That is not a valid number");
             }
         }
         scanner.close();

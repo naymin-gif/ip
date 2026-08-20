@@ -26,7 +26,9 @@ Prerequisites: JDK 25, update Intellij to the most recent version.
 Meowdy! I'm Epi
 Are you ready to tackle some purr-fectly good tasks today?
 blah
-Meow? You said: blah
+Added: blah
+list
+   1. blah
 bye
 Meow for now. See you later!
    ```

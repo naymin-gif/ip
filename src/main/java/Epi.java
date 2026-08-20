@@ -32,11 +32,17 @@ public class Epi {
                 tasks[taskIdx].markAsDone();
                 System.out.println("     About time you finished something. I've marked it as done:");
                 System.out.println("       " + tasks[taskIdx].toString());
-            } else {
+            } else if (input.startsWith("unmark ")) {
+                int taskIdx = Integer.parseInt(input.substring(7)) - 1;
+                tasks[taskIdx].markAsUndone();
+                System.out.println("     Slacking off, are we? I've marked this as not done:");
+                System.out.println("       " + tasks[taskIdx].toString());
+            }
+            else {
                 tasks[taskCount] = new Task(input);
 
-                System.out.println("     Ugh, fine. Added:");
-                System.out.println("       " + tasks[taskCount].toString());
+                System.out.println("Ugh, fine. Added: input");
+                //System.out.println("       " + tasks[taskCount].toString());
                 taskCount++;
             }
         }

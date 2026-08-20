@@ -19,21 +19,22 @@ public class Epi {
 
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
+            String[] commandParts = input.trim().split("\\s+");
             if (input.equalsIgnoreCase("bye")) {
                 System.out.println("Meow for now. See you later!");
                 break;
             } else if (input.equalsIgnoreCase("list")) {
+                System.out.println("     Behold, your endless mountain of chores:");
                 for (int i = 0; i < taskCount; i++) {
-                    System.out.println("     Behold, your endless mountain of chores:");
                     System.out.println("   " + (i + 1) + ". " + tasks[i].toString());
                 }
-            } else if (input.startsWith("mark ")) {
-                int taskIdx = Integer.parseInt(input.substring(5)) - 1;
+            } else if (commandParts[0].equalsIgnoreCase("mark")) {
+                int taskIdx = Integer.parseInt(commandParts[1]) - 1;
                 tasks[taskIdx].markAsDone();
                 System.out.println("     About time you finished something. I've marked it as done:");
                 System.out.println("       " + tasks[taskIdx].toString());
-            } else if (input.startsWith("unmark ")) {
-                int taskIdx = Integer.parseInt(input.substring(7)) - 1;
+            } else if (commandParts[0].equalsIgnoreCase("unmark")) {
+                int taskIdx = Integer.parseInt(commandParts[1]) - 1;
                 tasks[taskIdx].markAsUndone();
                 System.out.println("     Slacking off, are we? I've marked this as not done:");
                 System.out.println("       " + tasks[taskIdx].toString());
@@ -41,8 +42,7 @@ public class Epi {
             else {
                 tasks[taskCount] = new Task(input);
 
-                System.out.println("Ugh, fine. Added: input");
-                //System.out.println("       " + tasks[taskCount].toString());
+                System.out.println("Ugh, fine. Added: " + input);
                 taskCount++;
             }
         }

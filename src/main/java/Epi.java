@@ -1,3 +1,5 @@
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -16,7 +18,18 @@ public class Epi {
         System.out.println(banner);
         System.out.println("Meowdy! I'm Epi");
         System.out.println("Are you ready to tackle some purr-fectly good tasks today?");
-
+        File directory = new File("./data");
+        if (!directory.exists()) {
+            directory.mkdirs();
+        }
+        File dataFile = new File("./data/epi.txt");
+        if (!dataFile.exists()) {
+            try {
+                dataFile.createNewFile();
+            } catch (IOException e){
+                System.out.println("Something went wrong creating my memory file!");
+            }
+        }
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
 

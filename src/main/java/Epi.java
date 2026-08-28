@@ -8,15 +8,14 @@ public class Epi {
      * Saves the current list of tasks to the hard drive.
      * Overwrites the existing file with the current state of the tasks array.
      *
-     * @param tasks     The array of Task objects to be saved.
-     * @param taskCount The current number of tasks in the array.
+     * @param tasks The ArrayList of Task objects to be saved.
      */
-    private static void saveTasksToFile(Task[] tasks, int taskCount) {
+    private static void saveTasksToFile(ArrayList<Task> tasks) {
         try {
             java.io.FileWriter writer = new java.io.FileWriter("./data/epi.txt");
 
-            for (int i = 0; i < taskCount; i++) {
-                writer.write(tasks[i].toFileFormat() + System.lineSeparator());
+            for (Task task : tasks) {
+                writer.write(task.toFileFormat() + System.lineSeparator());
             }
 
             writer.close();
@@ -24,6 +23,54 @@ public class Epi {
             System.out.println("I couldn't save your tasks to the hard drive: " + e.getMessage());
         }
     }
+
+    /**
+     * Loads tasks from the hard drive into the application upon startup.
+     * Parses the custom text format back into Todo, Deadline, and Event objects.
+     *
+     * @param tasks The ArrayList where loaded Task objects will be stored.
+     */
+    private static void loadTasksFromFile(ArrayList<Task> tasks) {
+        java.io.File file = new java.io.File("./data/epi.txt");
+
+        try {
+            if (!file.exists()) {
+                return;
+            }
+
+            java.util.Scanner fileScanner = new java.util.Scanner(file);
+
+            while (fileScanner.hasNextLine()) {
+                String line = fileScanner.nextLine();
+                String[] parts = line.split(" \\| ");
+
+                String type = parts[0];
+                boolean isDone = parts[1].equals("1");
+                String description = parts[2];
+
+                Task task = null;
+
+                if (type.equals("T")) {
+                    task = new Todo(description);
+                } else if (type.equals("D")) {
+                    task = new Deadline(description, parts[3]);
+                } else if (type.equals("E")) {
+                    task = new Event(description, parts[3], parts[4]);
+                }
+
+                if (task != null) {
+                    if (isDone) {
+                        task.markAsDone();
+                    }
+                    tasks.add(task); // Add directly to the ArrayList
+                }
+            }
+            fileScanner.close();
+        } catch (java.io.FileNotFoundException e) {
+            System.out.println("The memory file disappeared while I was trying to read it!");
+        }
+    }
+
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ArrayList<Task> tasks = new ArrayList<>();
@@ -38,6 +85,7 @@ public class Epi {
         System.out.println(banner);
         System.out.println("Meowdy! I'm Epi");
         System.out.println("Are you ready to tackle some purr-fectly good tasks today?");
+
         File directory = new File("./data");
         if (!directory.exists()) {
             directory.mkdirs();
@@ -50,6 +98,9 @@ public class Epi {
                 System.out.println("Something went wrong creating my memory file!");
             }
         }
+
+        loadTasksFromFile(tasks);
+
         while (scanner.hasNextLine()) {
             String input = scanner.nextLine();
 
@@ -57,6 +108,7 @@ public class Epi {
                 String[] commandParts = input.trim().split("\\s+", 2);
                 String command = commandParts[0].toLowerCase();
                 String argument = commandParts.length > 1 ? commandParts[1] : "";
+
                 if (command.equals("bye")) {
                     System.out.println("Meow for now. See you later!");
                     break;
@@ -153,6 +205,11 @@ public class Epi {
                 } else {
                     throw new EpiException("I do not understand what that means, Human.");
                 }
+
+                if (!command.equals("list")) {
+                    saveTasksToFile(tasks);
+                }
+
             } catch (EpiException e) {
                 System.out.println(e.getMessage());
             } catch (NumberFormatException e) {

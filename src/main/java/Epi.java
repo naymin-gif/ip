@@ -4,6 +4,26 @@ import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Epi {
+    /**
+     * Saves the current list of tasks to the hard drive.
+     * Overwrites the existing file with the current state of the tasks array.
+     *
+     * @param tasks     The array of Task objects to be saved.
+     * @param taskCount The current number of tasks in the array.
+     */
+    private static void saveTasksToFile(Task[] tasks, int taskCount) {
+        try {
+            java.io.FileWriter writer = new java.io.FileWriter("./data/epi.txt");
+
+            for (int i = 0; i < taskCount; i++) {
+                writer.write(tasks[i].toFileFormat() + System.lineSeparator());
+            }
+
+            writer.close();
+        } catch (java.io.IOException e) {
+            System.out.println("I couldn't save your tasks to the hard drive: " + e.getMessage());
+        }
+    }
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         ArrayList<Task> tasks = new ArrayList<>();

@@ -18,6 +18,10 @@ public class Task {
         return (isDone ? "X" : " "); // mark done task with X
     }
 
+    public String toFileFormat() {
+        return (isDone ? "1" : "0") + " | " + description;
+    }
+
     @Override
     public String toString() {
         return "[" + this.getStatusIcon() + "] " + description;

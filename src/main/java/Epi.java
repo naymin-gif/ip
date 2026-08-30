@@ -1,5 +1,6 @@
 import java.io.File;
 import java.io.IOException;
+import java.time.DateTimeException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -214,6 +215,8 @@ public class Epi {
                 System.out.println(e.getMessage());
             } catch (NumberFormatException e) {
                 System.out.println("That is not a valid number");
+            } catch (DateTimeException e) {
+                System.out.println("Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)");
             }
         }
         scanner.close();

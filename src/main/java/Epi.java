@@ -6,6 +6,7 @@ public class Epi {
         Scanner scanner = new Scanner(System.in);
         TaskList tasks = new TaskList();
         Storage storage = new Storage("./data/epi.txt");
+        Parser parser = new Parser();
         String banner = "  ______       _ \n"
                 + " |  ____|     (_)\n"
                 + " | |__   _ __  _ \n"
@@ -25,7 +26,7 @@ public class Epi {
             String input = scanner.nextLine();
 
             try {
-                String[] commandParts = input.trim().split("\\s+", 2);
+                String[] commandParts = parser.parseInput(input);
                 String command = commandParts[0].toLowerCase();
                 String argument = commandParts.length > 1 ? commandParts[1] : "";
 
@@ -57,17 +58,7 @@ public class Epi {
                     System.out.println("Now you have " + totalTaskNow + " tasks in the list");
 
                 } else if (command.equals("mark") || command.equals("unmark")) {
-                    if (argument.isEmpty()) {
-                        throw new EpiException("You need to give me a task number, human.");
-                    }
-
-                    int taskIdx = Integer.parseInt(argument) - 1;
-                    if (tasks.size() == 0) {
-                        throw new EpiException("Cannot! You don't even have a single task");
-                    }
-                    if (taskIdx < 0 || taskIdx >= tasks.size()) {
-                        throw new EpiException("That task number doesn't exist in my memory!");
-                    }
+                    int taskIdx = parser.parseTaskIndex(argument, tasks);
 
                     if (command.equals("mark")) {
                         tasks.get(taskIdx).markAsDone();
@@ -78,47 +69,18 @@ public class Epi {
                     }
                     System.out.println("       " + tasks.get(taskIdx).toString());
                 } else if (command.equals("todo")) {
-                    if (argument.isEmpty()) {
-                        throw new EpiException("The description of a todo cannot be empty");
-                    }
-                    String description = argument.trim();
-                    tasks.add(new Todo(description));
+                    tasks.add(parser.parseTodo(argument));
                     System.out.println("     More work? Fine. I have added this task:");
                     System.out.println("       " + tasks.get(tasks.size() - 1).toString());
                     System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
                 } else if (command.equals("deadline")) {
-                    if (argument.isEmpty()) {
-                        throw new EpiException("The description of a deadline cannot be empty!");
-                    }
-                    String[] deadlineParts = argument.split(" /by ", 2);
-                    if (deadlineParts.length < 2 || deadlineParts[0].trim().isEmpty() || deadlineParts[1].trim().isEmpty()) {
-                        throw new EpiException("Invalid format! Use: deadline <task> /by <time>");
-                    }
-                    String description = deadlineParts[0].trim();
-                    String by = deadlineParts[1].trim();
-                    tasks.add(new Deadline(description, by));
+                    tasks.add(parser.parseDeadline(argument));
                     System.out.println("     A deadline? Better not miss it. I have added this task:");
                     System.out.println("       " + tasks.get(tasks.size() - 1).toString());
                     System.out.println("     Now you have " + tasks.size() + " tasks in the list.");
 
                 } else if (command.equals("event")) {
-                    if (argument.isEmpty()) {
-                        throw new EpiException("The description of a event cannot be empty!");
-                    }
-                    String[] eventParts = argument.split(" /from ", 2);
-                    if (eventParts.length < 2 || eventParts[0].trim().isEmpty()) {
-                        throw new EpiException("Invalid format! Missing description or '/from'. Use: event <task> /from <start> /to <end>");
-                    }
-                    String description = eventParts[0].trim();
-                    String[] timeparts = eventParts[1].split(" /to ", 2);
-
-                    if (timeparts.length < 2 || timeparts[0].trim().isEmpty() || timeparts[1].trim().isEmpty()) {
-                        throw new EpiException("Invalid format! Missing times. Use: event <task> /from <start> /to <end>");
-                    }
-
-                    String from = timeparts[0].trim();
-                    String to = timeparts[1].trim();
-                    tasks.add(new Event(description, from, to));
+                    tasks.add(parser.parseEvent(argument));
                     System.out.println("     An event? I hope there will be treats. I have added this task:");
                     System.out.println("       " + tasks.get(tasks.size() - 1).toString());
                     System.out.println("     Now you have " + tasks.size() + " tasks in the list.");

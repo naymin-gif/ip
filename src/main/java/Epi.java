@@ -1,7 +1,6 @@
 import java.io.File;
 import java.io.IOException;
 import java.time.DateTimeException;
-import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Epi {
@@ -9,9 +8,9 @@ public class Epi {
      * Saves the current list of tasks to the hard drive.
      * Overwrites the existing file with the current state of the tasks array.
      *
-     * @param tasks The ArrayList of Task objects to be saved.
+     * @param tasks The task list to be saved.
      */
-    private static void saveTasksToFile(ArrayList<Task> tasks) {
+    private static void saveTasksToFile(TaskList tasks) {
         try {
             java.io.FileWriter writer = new java.io.FileWriter("./data/epi.txt");
 
@@ -29,9 +28,9 @@ public class Epi {
      * Loads tasks from the hard drive into the application upon startup.
      * Parses the custom text format back into Todo, Deadline, and Event objects.
      *
-     * @param tasks The ArrayList where loaded Task objects will be stored.
+     * @param tasks The task list where loaded Task objects will be stored.
      */
-    private static void loadTasksFromFile(ArrayList<Task> tasks) {
+    private static void loadTasksFromFile(TaskList tasks) {
         java.io.File file = new java.io.File("./data/epi.txt");
 
         try {
@@ -63,7 +62,7 @@ public class Epi {
                     if (isDone) {
                         task.markAsDone();
                     }
-                    tasks.add(task); // Add directly to the ArrayList
+                    tasks.add(task);
                 }
             }
             fileScanner.close();
@@ -74,7 +73,7 @@ public class Epi {
 
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
-        ArrayList<Task> tasks = new ArrayList<>();
+        TaskList tasks = new TaskList();
         String banner = "  ______       _ \n"
                 + " |  ____|     (_)\n"
                 + " | |__   _ __  _ \n"
@@ -132,7 +131,7 @@ public class Epi {
                     if (taskIdx < 0 || taskIdx >= tasks.size()) {
                         throw new EpiException("That task number doesn't exist in my memory!");
                     }
-                    tasks.remove(taskIdx);
+                    tasks.delete(taskIdx);
                     System.out.println("Noted, I'll remove that from the task pile");
                     int totalTaskNow = tasks.size();
                     System.out.println("Now you have " + totalTaskNow + " tasks in the list");

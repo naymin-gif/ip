@@ -1,3 +1,11 @@
+package epi.parser;
+
+import epi.exception.EpiException;
+import epi.task.Deadline;
+import epi.task.Event;
+import epi.task.TaskList;
+import epi.task.Todo;
+
 public class Parser {
     public String[] parseInput(String input) {
         return input.trim().split("\\s+", 2);

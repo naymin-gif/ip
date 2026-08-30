@@ -1,4 +1,11 @@
+package epi;
+
 import java.time.DateTimeException;
+import epi.exception.EpiException;
+import epi.parser.Parser;
+import epi.storage.Storage;
+import epi.task.TaskList;
+import epi.ui.ConsoleUi;
 
 public class Epi {
     private final ConsoleUi ui;

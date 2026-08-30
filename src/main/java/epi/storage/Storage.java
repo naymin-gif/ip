@@ -1,7 +1,14 @@
+package epi.storage;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
+import epi.task.Task;
+import epi.task.TaskList;
+import epi.task.Todo;
+import epi.task.Deadline;
+import epi.task.Event;
 
 public class Storage {
     private final String filePath;

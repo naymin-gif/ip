@@ -1,3 +1,5 @@
+package epi.ui;
+
 import java.util.Scanner;
 
 public class ConsoleUi {

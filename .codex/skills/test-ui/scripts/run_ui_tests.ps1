@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $projectRoot = (Get-Location).Path
 $planPath = Join-Path $projectRoot 'test/ui-test-plan.md'
 $buildPath = Join-Path $projectRoot '.test-ui-build'
-$sourceFiles = @(Get-ChildItem (Join-Path $projectRoot 'src/main/java') -Filter '*.java' | Select-Object -ExpandProperty FullName)
+$sourceFiles = @(Get-ChildItem (Join-Path $projectRoot 'src/main/java') -Recurse -Filter '*.java' | Select-Object -ExpandProperty FullName)
 
 if (-not (Test-Path $planPath)) {
     throw "Test plan not found: $planPath"
@@ -49,7 +49,7 @@ foreach ($caseMatch in $caseMatches) {
 
     $psi = [System.Diagnostics.ProcessStartInfo]::new()
     $psi.FileName = 'java'
-    $psi.Arguments = "-cp `"$buildPath`" Epi"
+    $psi.Arguments = "-cp `"$buildPath`" epi.Epi"
     $psi.WorkingDirectory = $projectRoot
     $psi.RedirectStandardInput = $true
     $psi.RedirectStandardOutput = $true

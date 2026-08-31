@@ -33,3 +33,13 @@ Ensure that Java 25 is used when running the application or build tasks. On macO
 Use lightweight tags unless the user requests an annotated tag.
 When proposing or creating a commit message, include enough detail to explain the rationale for the change.
 Do not commit or push unless explicitly asked.
+
+All future commits and branch names must follow the project-specific `seedu-git-standard` skill, based on the SE-EDU Git conventions. Use imperative, capitalized commit subjects without trailing periods, keep subjects within 72 characters, add a wrapped body for non-trivial commits explaining what and why, and use meaningful kebab-case branch names. Review the staged diff before committing and exclude generated binaries and unrelated local data.
+
+## JUnit test coverage
+
+Maintain a test coverage target of approximately 50% by prioritizing JUnit tests for the highest-value methods, including complex, core, or critical business logic. After every code change, review the affected behavior and update or add the relevant JUnit tests so the project continues to comply with this target. Run the Gradle test task to verify the tests after making changes.
+
+## Java coding standard
+
+All Java code in this project must follow the project-specific `seedu-java-coding-standard` skill, based on the SE-EDU intermediate Java coding conventions. Apply it when creating, reviewing, or modifying code, and correct relevant style violations without changing behavior.

@@ -7,12 +7,14 @@ import epi.storage.Storage;
 import epi.task.TaskList;
 import epi.ui.ConsoleUi;
 
+/** Coordinates Epi's user interface, command parsing, task list, and storage. */
 public class Epi {
     private final ConsoleUi ui;
     private final Storage storage;
     private final Parser parser;
     private TaskList tasks;
 
+    /** Creates an Epi instance using the supplied task-file path. */
     public Epi(String filePath) {
         ui = new ConsoleUi();
         storage = new Storage(filePath);
@@ -32,6 +34,7 @@ public class Epi {
         ui.showLine("Are you ready to tackle some purr-fectly good tasks today?");
     }
 
+    /** Runs the command loop until the user exits or input ends. */
     public void run() {
         while (ui.hasNextLine()) {
             String input = ui.readLine();
@@ -43,9 +46,13 @@ public class Epi {
                     ui.showLine("Meow for now. See you later!");
                     break;
                 } else if (command.equals("list")) {
-                    if (tasks.size() == 0) throw new EpiException("Purr! There is no task in your list");
+                    if (tasks.size() == 0) {
+                        throw new EpiException("Purr! There is no task in your list");
+                    }
                     ui.showLine("     Here is your pile of tasks:");
-                    for (int i = 0; i < tasks.size(); i++) ui.showLine("   " + (i + 1) + ". " + tasks.get(i));
+                    for (int i = 0; i < tasks.size(); i++) {
+                        ui.showLine("   " + (i + 1) + ". " + tasks.get(i));
+                    }
                 } else if (command.equals("delete")) {
                     int taskIdx = parser.parseTaskIndex(argument, tasks);
                     tasks.delete(taskIdx);
@@ -85,12 +92,14 @@ public class Epi {
         ui.close();
     }
 
+    /** Displays the common confirmation shown after adding a task. */
     private void showAddedTask(String message) {
         ui.showLine(message);
         ui.showLine("       " + tasks.get(tasks.size() - 1));
         ui.showLine("     Now you have " + tasks.size() + " tasks in the list.");
     }
 
+    /** Starts Epi using its default task-file location. */
     public static void main(String[] args) {
         new Epi("./data/epi.txt").run();
     }

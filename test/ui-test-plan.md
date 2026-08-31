@@ -166,3 +166,28 @@ bye
 [E][ ] mystery activity (from: whenever to: who knows)
 Meow for now. See you later!
 ```
+
+## Test case 8: Find matching tasks
+
+### Aim
+
+Verify that `find` displays tasks whose descriptions contain the keyword.
+
+### Input
+
+```text
+todo read book
+deadline return book /by Sunday
+todo buy groceries
+find book
+bye
+```
+
+### Expected output
+
+```text
+Here are the matching tasks in your list:
+1. [T][ ] read book
+2. [D][ ] return book (by: Sunday)
+Meow for now. See you later!
+```

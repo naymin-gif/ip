@@ -4,19 +4,23 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
+
 import epi.task.Task;
 import epi.task.TaskList;
 import epi.task.Todo;
 import epi.task.Deadline;
 import epi.task.Event;
 
+/** Reads and writes tasks using the application's persistent file format. */
 public class Storage {
     private final String filePath;
 
+    /** Creates storage backed by the specified file path. */
     public Storage(String filePath) {
         this.filePath = filePath;
     }
 
+    /** Saves all tasks to the backing file, replacing its previous contents. */
     public void save(TaskList tasks) {
         try (FileWriter writer = new FileWriter(filePath)) {
             for (Task task : tasks) {
@@ -27,6 +31,7 @@ public class Storage {
         }
     }
 
+    /** Loads tasks from the backing file into a new task list. */
     public TaskList load() {
         TaskList tasks = new TaskList();
         File file = new File(filePath);
@@ -60,6 +65,7 @@ public class Storage {
         return tasks;
     }
 
+    /** Creates the parent directory and backing file when they do not exist. */
     public void prepareFile() {
         File file = new File(filePath);
         File directory = file.getParentFile();

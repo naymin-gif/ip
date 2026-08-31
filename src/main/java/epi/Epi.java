@@ -1,10 +1,12 @@
 package epi;
 
 import java.time.DateTimeException;
+import java.util.List;
 import epi.exception.EpiException;
 import epi.parser.Parser;
 import epi.storage.Storage;
 import epi.task.TaskList;
+import epi.task.Task;
 import epi.ui.ConsoleUi;
 
 /** Coordinates Epi's user interface, command parsing, task list, and storage. */
@@ -52,6 +54,15 @@ public class Epi {
                     ui.showLine("     Here is your pile of tasks:");
                     for (int i = 0; i < tasks.size(); i++) {
                         ui.showLine("   " + (i + 1) + ". " + tasks.get(i));
+                    }
+                } else if (command.equals("find")) {
+                    if (argument.trim().isEmpty()) {
+                        throw new EpiException("Please provide a keyword to search for.");
+                    }
+                    List<Task> matches = tasks.find(argument.trim());
+                    ui.showLine("     Here are the matching tasks in your list:");
+                    for (Task task : matches) {
+                        ui.showLine("   " + (tasks.getIndex(task) + 1) + ". " + task);
                     }
                 } else if (command.equals("delete")) {
                     int taskIdx = parser.parseTaskIndex(argument, tasks);

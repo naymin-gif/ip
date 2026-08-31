@@ -3,6 +3,7 @@ package epi.task;
 import org.junit.jupiter.api.Test;
 
 import java.util.Iterator;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
@@ -105,5 +106,28 @@ class TaskListTest {
         assertEquals(2, tasks.size());
         assertEquals("[T][ ] read book", tasks.get(0).toString());
         assertEquals("[T][ ] return book", tasks.get(1).toString());
+    }
+
+    @Test
+    void find_keywordMatchesDescriptionsIgnoringCaseAndPreservingOrder() {
+        TaskList tasks = new TaskList();
+        Task first = new Todo("read book");
+        Task second = new Todo("buy groceries");
+        Task third = new Todo("return book");
+        tasks.add(first);
+        tasks.add(second);
+        tasks.add(third);
+
+        List<Task> matches = tasks.find("BOOK");
+
+        assertEquals(List.of(first, third), matches);
+    }
+
+    @Test
+    void find_keywordWithNoMatches_returnsEmptyList() {
+        TaskList tasks = new TaskList();
+        tasks.add(new Todo("read book"));
+
+        assertEquals(List.of(), tasks.find("movie"));
     }
 }

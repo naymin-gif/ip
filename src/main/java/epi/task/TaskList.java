@@ -1,6 +1,7 @@
 package epi.task;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /** Maintains the ordered collection of tasks used by the application. */
 public class TaskList implements Iterable<Task> {
@@ -29,6 +30,23 @@ public class TaskList implements Iterable<Task> {
     /** Returns the number of tasks currently stored. */
     public int size() {
         return tasks.size();
+    }
+
+    /** Returns tasks whose descriptions contain the keyword, ignoring case. */
+    public List<Task> find(String keyword) {
+        String lowerKeyword = keyword.toLowerCase();
+        List<Task> matches = new ArrayList<>();
+        for (Task task : tasks) {
+            if (task.description.toLowerCase().contains(lowerKeyword)) {
+                matches.add(task);
+            }
+        }
+        return matches;
+    }
+
+    /** Returns the zero-based index of a task in the list. */
+    public int getIndex(Task task) {
+        return tasks.indexOf(task);
     }
 
     /** Returns an iterator over tasks in insertion order. */

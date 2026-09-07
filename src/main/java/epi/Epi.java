@@ -2,11 +2,12 @@ package epi;
 
 import java.time.DateTimeException;
 import java.util.List;
+
 import epi.exception.EpiException;
 import epi.parser.Parser;
 import epi.storage.Storage;
-import epi.task.TaskList;
 import epi.task.Task;
+import epi.task.TaskList;
 import epi.ui.ConsoleUi;
 
 /** Coordinates Epi's user interface, command parsing, task list, and storage. */
@@ -91,7 +92,9 @@ public class Epi {
                 } else {
                     throw new EpiException("I do not understand what that means, Human.");
                 }
-                if (!command.equals("list")) storage.save(tasks);
+                if (!command.equals("list")) {
+                    storage.save(tasks);
+                }
             } catch (EpiException e) {
                 ui.showLine(e.getMessage());
             } catch (NumberFormatException e) {

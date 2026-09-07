@@ -32,7 +32,8 @@ public class MainWindow {
             return;
         }
         addUserMessage(input);
-        epi.processCommand(input).forEach(this::addEpiMessage);
+        String response = String.join("\n", epi.processCommand(input));
+        addEpiMessage(response);
         userInput.clear();
     }
 

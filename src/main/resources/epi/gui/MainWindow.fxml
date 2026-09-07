@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="epi.gui.MainWindow" stylesheets="@main.css">
+    <top>
+        <Label text="Epi's Purr-fect Task Companion" styleClass="header" />
+    </top>
+    <center>
+        <ScrollPane fx:id="scrollPane" fitToWidth="true" hbarPolicy="NEVER">
+            <content>
+                <VBox fx:id="dialogContainer" spacing="10" />
+            </content>
+        </ScrollPane>
+    </center>
+    <bottom>
+        <HBox spacing="8" styleClass="input-bar">
+            <TextField fx:id="userInput" HBox.hgrow="ALWAYS" onAction="#handleUserInput"
+                       promptText="Type a command, human..." />
+            <Button text="Send" onAction="#handleUserInput" />
+        </HBox>
+    </bottom>
+</BorderPane>

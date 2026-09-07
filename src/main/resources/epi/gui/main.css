@@ -1,0 +1,35 @@
+.root {
+    -fx-font-family: "Arial";
+    -fx-background-color: #fff7fb;
+}
+.header {
+    -fx-background-color: #8e5aa9;
+    -fx-text-fill: white;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+    -fx-padding: 16px;
+}
+.scroll-pane, .scroll-pane .viewport {
+    -fx-background-color: #fff7fb;
+}
+.input-bar {
+    -fx-padding: 12px;
+    -fx-background-color: #f0dff5;
+}
+.input-bar .button {
+    -fx-background-color: #8e5aa9;
+    -fx-text-fill: white;
+    -fx-font-weight: bold;
+}
+.epi-box, .user-box {
+    -fx-padding: 4px 14px;
+}
+.epi-box { -fx-alignment: CENTER_LEFT; }
+.user-box { -fx-alignment: CENTER_RIGHT; }
+.epi-message, .user-message {
+    -fx-padding: 10px;
+    -fx-background-radius: 12px;
+    -fx-max-width: 430px;
+}
+.epi-message { -fx-background-color: #ead8f0; }
+.user-message { -fx-background-color: #d2eaf7; }

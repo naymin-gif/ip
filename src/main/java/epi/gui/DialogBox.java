@@ -1,6 +1,8 @@
 package epi.gui;
 
 import javafx.scene.control.Label;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 
 /** Represents one message bubble in the Epi conversation. */
@@ -9,7 +11,19 @@ public class DialogBox extends HBox {
         Label label = new Label(message);
         label.setWrapText(true);
         label.getStyleClass().add(fromUser ? "user-message" : "epi-message");
-        getChildren().add(label);
+        String imagePath = fromUser
+                ? "/epi/gui/images/user.png"
+                : "/epi/gui/images/epi.png";
+        Image image = new Image(getClass().getResourceAsStream(imagePath));
+        ImageView avatar = new ImageView(image);
+        avatar.setFitWidth(60);
+        avatar.setFitHeight(60);
+        avatar.setPreserveRatio(true);
+        if (fromUser) {
+            getChildren().addAll(label, avatar);
+        } else {
+            getChildren().addAll(avatar, label);
+        }
         getStyleClass().add(fromUser ? "user-box" : "epi-box");
     }
 

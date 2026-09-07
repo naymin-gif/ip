@@ -1,15 +1,16 @@
 package epi.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import org.junit.jupiter.api.Test;
+
 import epi.exception.EpiException;
 import epi.task.Deadline;
 import epi.task.Event;
 import epi.task.Task;
 import epi.task.TaskList;
 import epi.task.Todo;
-import org.junit.jupiter.api.Test;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class ParserTest {
     private final Parser parser = new Parser();
@@ -50,8 +51,8 @@ class ParserTest {
 
     @Test
     void parseEvent_missingToMarker_throwsEpiException() {
-        assertThrows(EpiException.class,
-                () -> parser.parseEvent("project meeting /from 2019-12-02 1400"));
+        assertThrows(EpiException.class, () -> parser.parseEvent(
+                "project meeting /from 2019-12-02 1400"));
     }
 
     @Test

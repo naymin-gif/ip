@@ -5,11 +5,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Scanner;
 
+import epi.task.Deadline;
+import epi.task.Event;
 import epi.task.Task;
 import epi.task.TaskList;
 import epi.task.Todo;
-import epi.task.Deadline;
-import epi.task.Event;
 
 /** Reads and writes tasks using the application's persistent file format. */
 public class Storage {

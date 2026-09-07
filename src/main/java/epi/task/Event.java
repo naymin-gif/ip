@@ -7,11 +7,10 @@ import java.time.format.DateTimeParseException;
 
 /** Represents a task with a start and end date/time. */
 public class Event extends Task {
-    protected LocalDateTime from;
-    protected LocalDateTime to;
-
     private static final DateTimeFormatter INPUT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
     private static final DateTimeFormatter OUTPUT_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a");
+    protected LocalDateTime from;
+    protected LocalDateTime to;
 
     /** Creates an event by parsing its start and end date/time values. */
     public Event(String description, String fromString, String toString) throws DateTimeParseException {

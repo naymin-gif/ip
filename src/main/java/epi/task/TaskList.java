@@ -5,7 +5,7 @@ import java.util.List;
 
 /** Maintains the ordered collection of tasks used by the application. */
 public class TaskList implements Iterable<Task> {
-    private final ArrayList<Task> tasks;
+    private final List<Task> tasks;
 
     /** Creates an empty task list. */
     public TaskList() {

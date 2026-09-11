@@ -48,9 +48,11 @@ public class Epi {
 
     /** Processes one command and returns the lines that should be shown to a user interface. */
     public List<String> processCommand(String input) {
+        assert input != null : "A command must be provided to Epi";
         List<String> output = new ArrayList<>();
         try {
             String[] commandParts = parser.parseInput(input);
+            assert commandParts.length > 0 : "The parser must return a command part";
             String command = commandParts[0].toLowerCase();
             String argument = commandParts.length > 1 ? commandParts[1] : "";
             if (command.equals("bye")) {
@@ -73,12 +75,14 @@ public class Epi {
                 }
             } else if (command.equals("delete")) {
                 int taskIdx = parser.parseTaskIndex(argument, tasks);
+                assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
                 tasks.delete(taskIdx);
                 output.add("Noted, I'll remove that from the task pile");
                 output.add("Now you have " + tasks.size() + " tasks in the list");
                 storage.save(tasks);
             } else if (command.equals("mark") || command.equals("unmark")) {
                 int taskIdx = parser.parseTaskIndex(argument, tasks);
+                assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
                 if (command.equals("mark")) {
                     tasks.get(taskIdx).markAsDone();
                     output.add("About time you finished something. I've marked it as done:");

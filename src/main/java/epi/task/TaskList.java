@@ -14,16 +14,20 @@ public class TaskList implements Iterable<Task> {
 
     /** Adds a task to the end of the list. */
     public void add(Task task) {
+        assert task != null : "A task list must not contain null tasks";
         tasks.add(task);
+        assert tasks.get(tasks.size() - 1) == task : "Added task must be stored at the end of the list";
     }
 
     /** Returns the task at the specified zero-based index. */
     public Task get(int index) {
+        assert index >= 0 && index < tasks.size() : "Task index must refer to an existing task";
         return tasks.get(index);
     }
 
     /** Removes the task at the specified zero-based index. */
     public void delete(int index) {
+        assert index >= 0 && index < tasks.size() : "Task index must refer to an existing task";
         tasks.remove(index);
     }
 

@@ -7,6 +7,8 @@ import javafx.scene.layout.HBox;
 
 /** Represents one message bubble in the Epi conversation. */
 public class DialogBox extends HBox {
+    private static final double AVATAR_SIZE = 60;
+
     private DialogBox(String message, boolean fromUser) {
         Label label = new Label(message);
         label.setWrapText(true);
@@ -16,8 +18,8 @@ public class DialogBox extends HBox {
                 : "/epi/gui/images/epi.png";
         Image image = new Image(getClass().getResourceAsStream(imagePath));
         ImageView avatar = new ImageView(image);
-        avatar.setFitWidth(60);
-        avatar.setFitHeight(60);
+        avatar.setFitWidth(AVATAR_SIZE);
+        avatar.setFitHeight(AVATAR_SIZE);
         avatar.setPreserveRatio(true);
         if (fromUser) {
             getChildren().addAll(label, avatar);

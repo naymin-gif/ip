@@ -34,3 +34,17 @@ Meow for now. See you later!
    ```
 
 **Warning:** Keep the `src\main\java` folder as the root folder for Java files (i.e., don't rename those folders or move Java files to another folder outside of this folder path), as this is the default location some tools (e.g., Gradle) expect to find Java files.
+
+## Code quality checks
+
+Run the following commands from the project root to verify the Java coding
+standard and automated tests:
+
+```bash
+./gradlew checkstyleMain checkstyleTest test
+```
+
+The code-quality improvements include shared command processing for the CLI
+and GUI, use of collection abstractions, and named constants for GUI layout
+values. Keeping these checks in the normal development workflow helps detect
+style violations and regressions early.

@@ -45,6 +45,9 @@ dependencies {
 test {
     useJUnitPlatform()
     enableAssertions = true
+    // Match the English examples without changing the application's default locale.
+    systemProperty 'user.language', 'en'
+    systemProperty 'user.country', 'US'
 
     testLogging {
         events 'passed', 'skipped', 'failed'
@@ -74,4 +77,26 @@ shadowJar {
 
 run {
     standardInput = System.in
+}
+
+tasks.register('prepareUiTests') {
+    group = 'verification'
+    description = 'Compile Epi and export its runtime configuration for isolated console tests.'
+    dependsOn tasks.named('classes')
+
+    def runtimeFile = layout.buildDirectory.file('ui-tests/runtime.json')
+    outputs.file(runtimeFile)
+    // Refresh the executable path when the JDK running Gradle changes.
+    outputs.upToDateWhen { false }
+
+    doLast {
+        def javaName = System.getProperty('os.name').startsWith('Windows') ? 'java.exe' : 'java'
+        def runtime = [
+            javaExecutable: new File(System.getProperty('java.home'), 'bin/' + javaName).absolutePath,
+            classpath: sourceSets.main.runtimeClasspath.asPath
+        ]
+        def output = runtimeFile.get().asFile
+        output.parentFile.mkdirs()
+        output.setText(groovy.json.JsonOutput.toJson(runtime), 'UTF-8')
+    }
 }

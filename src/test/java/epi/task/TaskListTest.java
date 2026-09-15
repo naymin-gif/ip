@@ -130,4 +130,112 @@ class TaskListTest {
 
         assertEquals(List.of(), tasks.find("movie"));
     }
+
+    @Test
+    void getSortedByDate_emptyList_returnsEmptyList() {
+        TaskList tasks = new TaskList();
+
+        assertEquals(List.of(), tasks.getSortedByDate());
+        assertEquals(0, tasks.size());
+    }
+
+    @Test
+    void getSortedByDate_singleTask_returnsSameTask() {
+        TaskList tasks = new TaskList();
+        Task task = new Deadline("return book", "2019-12-02 1800");
+        tasks.add(task);
+
+        assertEquals(List.of(task), tasks.getSortedByDate());
+        assertSame(task, tasks.get(0));
+    }
+
+    @Test
+    void getSortedByDate_deadlines_ordersByYearDateAndTime() {
+        TaskList tasks = new TaskList();
+        Task nextYear = new Deadline("next year", "2020-01-01 0900");
+        Task evening = new Deadline("evening", "2019-12-31 1800");
+        Task morning = new Deadline("morning", "2019-12-31 0800");
+        Task first = new Deadline("first", "2019-01-01 0000");
+        tasks.add(nextYear);
+        tasks.add(evening);
+        tasks.add(morning);
+        tasks.add(first);
+
+        assertEquals(List.of(first, morning, evening, nextYear), tasks.getSortedByDate());
+    }
+
+    @Test
+    void getSortedByDate_mixedTypes_usesEventStartAndPutsTodosLast() {
+        TaskList tasks = new TaskList();
+        Task firstTodo = new Todo("notes");
+        Task later = new Deadline("report", "2020-01-03 0900");
+        Task event = new Event("conference", "2020-01-01 0900", "2020-01-05 1700");
+        Task earlier = new Deadline("book", "2020-01-02 0900");
+        Task secondTodo = new Todo("shopping");
+        tasks.add(firstTodo);
+        tasks.add(later);
+        tasks.add(event);
+        tasks.add(earlier);
+        tasks.add(secondTodo);
+
+        assertEquals(List.of(event, earlier, later, firstTodo, secondTodo), tasks.getSortedByDate());
+    }
+
+    @Test
+    void getSortedByDate_equalDates_preservesOrderAcrossTypes() {
+        TaskList tasks = new TaskList();
+        Task event = new Event("meeting", "2019-12-02 1400", "2019-12-02 1600");
+        Task firstDeadline = new Deadline("return book", "2019-12-02 1400");
+        Task secondDeadline = new Deadline("return book", "2019-12-02 1400");
+        tasks.add(event);
+        tasks.add(firstDeadline);
+        tasks.add(secondDeadline);
+
+        assertEquals(List.of(event, firstDeadline, secondDeadline), tasks.getSortedByDate());
+    }
+
+    @Test
+    void getSortedByDate_onlyUndatedTasks_preservesInsertionOrder() {
+        TaskList tasks = new TaskList();
+        Task first = new Todo("zebra notes");
+        Task second = new Todo("apple notes");
+        tasks.add(first);
+        tasks.add(second);
+
+        assertEquals(List.of(first, second), tasks.getSortedByDate());
+    }
+
+    @Test
+    void getSortedByDate_completedTasks_keepsChronologicalOrderAndStatus() {
+        TaskList tasks = new TaskList();
+        Task pending = new Deadline("later", "2019-12-02 1800");
+        Task done = new Deadline("earlier", "2019-12-02 0900");
+        done.markAsDone();
+        tasks.add(pending);
+        tasks.add(done);
+
+        assertEquals(List.of(done, pending), tasks.getSortedByDate());
+        assertEquals("X", done.getStatusIcon());
+        assertEquals(" ", pending.getStatusIcon());
+    }
+
+    @Test
+    void getSortedByDate_returnedListIsModified_doesNotChangeOriginalList() {
+        TaskList tasks = new TaskList();
+        Task first = new Todo("notes");
+        Task second = new Deadline("return book", "2019-12-02 1800");
+        tasks.add(first);
+        tasks.add(second);
+
+        List<Task> sorted = tasks.getSortedByDate();
+        assertEquals(List.of(second, first), sorted);
+        assertSame(first, tasks.get(0));
+        assertSame(second, tasks.get(1));
+        sorted.clear();
+
+        assertEquals(2, tasks.size());
+        assertSame(first, tasks.get(0));
+        assertSame(second, tasks.get(1));
+        assertEquals(List.of(second, first), tasks.getSortedByDate());
+    }
 }

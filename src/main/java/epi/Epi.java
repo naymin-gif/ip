@@ -66,6 +66,17 @@ public class Epi {
                 for (int i = 0; i < tasks.size(); i++) {
                     output.add((i + 1) + ". " + tasks.get(i));
                 }
+            } else if (command.equals("sort")) {
+                if (!argument.trim().equalsIgnoreCase("date")) {
+                    throw new EpiException("Meow! Use: sort date");
+                }
+                if (tasks.size() == 0) {
+                    throw new EpiException("Purr! There is no task in your list");
+                }
+                output.add("Here is your pile of tasks, sorted by date (original task numbers):");
+                for (Task task : tasks.getSortedByDate()) {
+                    output.add((tasks.getIndex(task) + 1) + ". " + task);
+                }
             } else if (command.equals("find")) {
                 if (argument.trim().isEmpty()) {
                     throw new EpiException("Please provide a keyword to search for.");

@@ -18,13 +18,14 @@ public class DialogBox extends HBox {
     private static final double AVATAR_GAP = 10;
     private static final double USER_WIDTH_RATIO = 0.82;
 
-    private DialogBox(String message, boolean fromUser) {
+    private DialogBox(String message, boolean fromUser, boolean error) {
         setSpacing(AVATAR_GAP);
         setMinWidth(0);
         setFillHeight(false);
         getStyleClass().add(fromUser ? "user-box" : "epi-box");
 
-        Label speaker = new Label(fromUser ? "You" : "Epi");
+        String botLabel = error ? "Epi - needs attention" : "Epi";
+        Label speaker = new Label(fromUser ? "You" : botLabel);
         speaker.getStyleClass().add("speaker");
         Label label = new Label(message);
         label.setWrapText(true);
@@ -37,6 +38,9 @@ public class DialogBox extends HBox {
         content.setMinWidth(0);
         content.setMaxHeight(Region.USE_PREF_SIZE);
         content.getStyleClass().add(fromUser ? "user-message" : "epi-message");
+        if (error) {
+            content.getStyleClass().add("error-message");
+        }
         content.maxWidthProperty().bind(
                 Bindings.createDoubleBinding(() -> calculateContentWidth(getWidth(), fromUser), widthProperty()));
         // Bot replies use the available space; short user commands stay compact.
@@ -91,7 +95,7 @@ public class DialogBox extends HBox {
      * @return A message row containing the user input and avatar.
      */
     public static DialogBox user(String message) {
-        return new DialogBox(message, true);
+        return new DialogBox(message, true, false);
     }
 
     /**
@@ -101,6 +105,11 @@ public class DialogBox extends HBox {
      * @return A single message row containing the entire response and Epi's avatar.
      */
     public static DialogBox epi(String message) {
-        return new DialogBox(message, false);
+        return new DialogBox(message, false, false);
+    }
+
+    /** Creates a labelled error card; the wording is supplied by the backend, not used to detect errors. */
+    public static DialogBox error(String message) {
+        return new DialogBox(message, false, true);
     }
 }

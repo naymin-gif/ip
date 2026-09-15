@@ -1,6 +1,7 @@
 package epi.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
 import java.util.Iterator;
@@ -9,6 +10,40 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 class TaskListTest {
+
+    @Test
+    void copy_mixedTasks_preservesDataButIsolatesMutations() {
+        TaskList original = new TaskList();
+        original.add(new Task("generic"));
+        original.add(new Todo("book"));
+        original.add(new Deadline("report", "2020-02-29 1200"));
+        original.add(new Event("meeting", "2020-02-29 1200", "2020-02-29 1300"));
+        original.get(1).markAsDone();
+        TaskList copy = original.copy();
+
+        assertEquals(original.size(), copy.size());
+        for (int i = 0; i < original.size(); i++) {
+            assertNotSame(original.get(i), copy.get(i));
+            assertEquals(original.get(i).getClass(), copy.get(i).getClass());
+            assertEquals(original.get(i).toFileFormat(), copy.get(i).toFileFormat());
+            String originalStatus = original.get(i).getStatusIcon();
+            copy.get(i).markAsDone();
+            copy.get(i).markAsUndone();
+            assertEquals(originalStatus, original.get(i).getStatusIcon());
+        }
+        copy.delete(0);
+        copy.add(new Todo("new"));
+        assertEquals("[ ] generic", original.get(0).toString());
+        assertEquals(4, original.size());
+    }
+
+    @Test
+    void copy_emptyList_returnsIndependentEmptyList() {
+        TaskList original = new TaskList();
+        TaskList copy = original.copy();
+        copy.add(new Todo("new"));
+        assertEquals(0, original.size());
+    }
 
     @Test
     void constructor_newTaskList_hasZeroTasks() {

@@ -2,7 +2,7 @@
 
 ## Scope and execution
 
-This is the canonical automated console test plan for the existing application and the selected **C-Sort** extension. `sort date` displays tasks chronologically, preserving full-list numbers and stored order. No aliases, natural dates, editing, or new storage format are included.
+This is the canonical automated console test plan for Epi, **C-Sort**, and **A-MoreErrorHandling**. `sort date` displays tasks chronologically, preserving full-list numbers and stored order. No aliases, natural dates, editing, duplicate rejection, or new storage format are included.
 
 Run from the project root with Java 25 configured:
 
@@ -21,12 +21,13 @@ On the first failure, stop, show the actual and expected output, and retain the 
 Maintain the project's approximately 50% highest-value-method target, prioritizing core behavior rather than a line-coverage percentage. After relevant changes, update the tests and this plan, then run Gradle `test checkstyleMain checkstyleTest` and the console runner.
 
 - `EpiTest`: full command responses, task numbering, validation without mutation, read-only commands, and reload after add/mark/unmark/delete. C-Sort tests check exact replies, original numbers for subsequent mutations, unchanged file contents/modification time, invalid arguments, and sorting after reload.
-- `StorageTest`: existing pipe-delimited records, all task types/statuses/dates, UTF-8 text, file paths with spaces, overwrite/empty saves, and independent files. Every file lives under JUnit `@TempDir`.
-- `ParserTest`: current splitting rules, required fields, and invalid task numbers.
+- `StorageTest`: existing records, round trips, UTF-8 text, paths with spaces, missing files, damaged records/encoding, unusable paths, external edits, and preservation after failed saves. Access-denied and unsupported atomic moves are injected deterministically, without changing real permissions. Every file lives under JUnit `@TempDir`.
+- `ParserTest`: whitespace, case-insensitive markers, missing/repeated/wrong-order fields, and task-number boundaries/overflow.
+- `DeadlineTest` and `EventTest`: impossible dates, leap-year boundaries, invalid clock times, and equal/reversed event endpoints; valid overnight and one-minute events remain accepted.
 - `TaskListTest` and `TaskTest`: collection/order/search/status tests, plus date sorting across years/times/types, event-start ordering, stable ties, completed/undated tasks, empty/single lists, and a structurally independent sorted copy.
 - `DialogBoxTest`: responsive bot/user content widths, initial/tiny layout widths, expansion beyond the old fixed limit, and centred square crops for portrait/landscape/square/fractional image sizes.
 
-The **A-BetterGui** increment does not change any console input or expected output below. `EpiTest` exercises the backend shared by the CLI and GUI. See [gui-test-plan.md](gui-test-plan.md) for the separate optional JavaFX scene checks and manual window checks. Migration, malformed-file recovery, relative-date parsing, and other extension behavior remain out of scope.
+The original 17 cases remain unchanged; cases 18-21 protect stricter validation and recovery after rejected commands. `EpiTest` also verifies that every mutating command rolls back on failed saves, startup recovery blocks writes, and error classification does not depend on message text. `TaskListTest` checks independent snapshots, including completion flags, so failed status changes cannot leak into live tasks. See [gui-test-plan.md](gui-test-plan.md) for visible file warnings and the separate JavaFX scene/manual checks. File fixtures belong in JUnit and the isolated GUI smoke runner; the console cases below always start with a fresh empty file.
 
 ## Shared startup
 
@@ -625,5 +626,170 @@ Here is your pile of tasks:
 1. [D][ ] book (by: Dec 02 2019, 6:00 PM)
 2. [T][ ] notes
 3. [D][ ] book (by: Dec 02 2019, 6:00 PM)
+Meow for now. See you later!
+```
+
+## Test case 18: Accept whitespace and parameter case without altering descriptions
+
+### Aim
+
+Verify leading spaces, multiple separating spaces, case-insensitive markers, preserved internal description spaces, and valid leap-day dates. JUnit also covers trailing spaces and tabs.
+
+### Input
+
+```text
+  DeAdLiNe   Read  Book   /BY   2020-02-29   1200
+  EVENT  night  shift  /FROM  2020-02-29  2359  /TO  2020-03-01  0000
+  MARK   2
+list
+bye
+```
+
+### Expected output
+
+```text
+A deadline? Better not miss it. I have added this task:
+[D][ ] Read  Book (by: Feb 29 2020, 12:00 PM)
+Now you have 1 tasks in the list.
+An event? I hope there will be treats. I have added this task:
+[E][ ] night  shift (from: Feb 29 2020, 11:59 PM to: Mar 01 2020, 12:00 AM)
+Now you have 2 tasks in the list.
+About time you finished something. I've marked it as done:
+[E][X] night  shift (from: Feb 29 2020, 11:59 PM to: Mar 01 2020, 12:00 AM)
+Here is your pile of tasks:
+1. [D][ ] Read  Book (by: Feb 29 2020, 12:00 PM)
+2. [E][X] night  shift (from: Feb 29 2020, 11:59 PM to: Mar 01 2020, 12:00 AM)
+Meow for now. See you later!
+```
+
+## Test case 19: Reject impossible dates and non-positive event durations
+
+### Aim
+
+Verify that invalid dates/times are rejected rather than silently normalized, and that no invalid event or deadline is added. A later valid command must still work.
+
+### Input
+
+```text
+deadline book /by 2019-02-29 1200
+deadline book /by 2020-02-30 1200
+deadline book /by 2020-04-31 1200
+deadline book /by 2020-01-01 2400
+event meeting /from 2020-02-30 1200 /to 2020-03-01 1200
+event meeting /from 2020-02-29 1200 /to 2020-02-30 1200
+event meeting /from 2020-01-01 1200 /to 2020-01-01 1200
+event meeting /from 2020-01-01 1300 /to 2020-01-01 1200
+list
+todo recovery works
+list
+bye
+```
+
+### Expected output
+
+```text
+Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)
+Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)
+Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)
+Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)
+Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)
+Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)
+Meow! An event must end after it starts.
+Meow! An event must end after it starts.
+Purr! There is no task in your list
+More work? Fine. I have added this task:
+[T][ ] recovery works
+Now you have 1 tasks in the list.
+Here is your pile of tasks:
+1. [T][ ] recovery works
+Meow for now. See you later!
+```
+
+## Test case 20: Reject malformed fields and unsafe descriptions
+
+### Aim
+
+Verify missing/repeated/wrong-order parameters, empty descriptions/date fields, and pipe characters cannot produce partial tasks or corrupt records. Ordinary punctuation stays allowed.
+
+### Input
+
+```text
+deadline book
+deadline /by 2020-01-01 1200
+deadline book /by
+deadline book /by 2020-01-01 1200 /by 2020-01-02 1200
+deadline book /from 2020-01-01 1200
+event meeting /from 2020-01-01 1200
+event meeting /to 2020-01-01 1300 /from 2020-01-01 1200
+event meeting /from 2020-01-01 1200 /to
+event /from 2020-01-01 1200 /to 2020-01-01 1300
+event meeting /from 2020-01-01 1200 /to 2020-01-01 1300 /to 2020-01-01 1400
+todo first | second
+list
+todo read / notes #fun & relax!
+list
+bye
+```
+
+### Expected output
+
+```text
+Invalid format! Use: deadline <task> /by <time>
+Invalid format! Use: deadline <task> /by <time>
+Invalid format! Use: deadline <task> /by <time>
+Invalid format! Use: deadline <task> /by <time>
+Invalid format! Use: deadline <task> /by <time>
+Invalid format! Use: event <task> /from <start> /to <end>
+Invalid format! Use: event <task> /from <start> /to <end>
+Invalid format! Use: event <task> /from <start> /to <end>
+Invalid format! Use: event <task> /from <start> /to <end>
+Invalid format! Use: event <task> /from <start> /to <end>
+Meow! Task descriptions must stay on one line and cannot contain '|'.
+Purr! There is no task in your list
+More work? Fine. I have added this task:
+[T][ ] read / notes #fun & relax!
+Now you have 1 tasks in the list.
+Here is your pile of tasks:
+1. [T][ ] read / notes #fun & relax!
+Meow for now. See you later!
+```
+
+## Test case 21: Reject extra arguments and task-number overflow without exiting
+
+### Aim
+
+Verify malformed bye does not terminate the CLI, list rejects extra text, and extreme/multiple/nonnumeric task numbers leave the task unchanged. A valid spaced bye must still exit.
+
+### Input
+
+```text
+todo keep me
+bye extra
+list extra
+mark -2147483648
+delete 2147483647
+unmark 99999999999999999999
+mark 1 2
+delete 1.5
+list
+  BYE
+todo must not run
+```
+
+### Expected output
+
+```text
+More work? Fine. I have added this task:
+[T][ ] keep me
+Now you have 1 tasks in the list.
+Meow! Use: bye
+Meow! Use: list
+That task number doesn't exist in my memory!
+That task number doesn't exist in my memory!
+That is not a valid number
+That is not a valid number
+That is not a valid number
+Here is your pile of tasks:
+1. [T][ ] keep me
 Meow for now. See you later!
 ```

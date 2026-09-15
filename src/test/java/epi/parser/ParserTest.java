@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import epi.exception.EpiException;
@@ -108,5 +110,59 @@ class ParserTest {
         assertThrows(EpiException.class, () -> parser.parseTaskIndex("", tasks));
         assertThrows(NumberFormatException.class, () -> parser.parseTaskIndex("abc", tasks));
         assertThrows(NumberFormatException.class, () -> parser.parseTaskIndex("2147483648", tasks));
+    }
+
+    @Test
+    void parseDeadline_extraWhitespace_acceptsFieldsWithoutChangingDescription() throws EpiException {
+        Deadline task = parser.parseDeadline("  Read  Book\t /BY\t2020-02-29   1800  ");
+        assertEquals("D | 0 | Read  Book | 2020-02-29 1800", task.toFileFormat());
+    }
+
+    @Test
+    void parseEvent_extraWhitespace_acceptsFieldsInTheRequiredOrder() throws EpiException {
+        Event task = parser.parseEvent(" Meet  friends\t/FROM\t2020-02-29  2300\t/TO  2020-03-01\t0100 ");
+        assertEquals("E | 0 | Meet  friends | 2020-02-29 2300 | 2020-03-01 0100", task.toFileFormat());
+    }
+
+    @Test
+    void parseDeadline_repeatedOrIncorrectMarkers_throwsUsageError() {
+        for (String argument : List.of("book /by 2020-01-01 1200 /by 2020-01-02 1200",
+                "book /from 2020-01-01 1200", "book /by 2020-01-01 1200 /to 2020-01-02 1200",
+                "book /by", "/by 2020-01-01 1200", "book /by2020-01-01 1200")) {
+            assertEquals("Invalid format! Use: deadline <task> /by <time>",
+                    assertThrows(EpiException.class, () -> parser.parseDeadline(argument)).getMessage(), argument);
+        }
+    }
+
+    @Test
+    void parseEvent_repeatedReorderedOrEmptyParameters_throwsUsageError() {
+        for (String argument : List.of("meeting /to 2020-01-01 1200 /from 2020-01-01 1100",
+                "meeting /from 2020-01-01 1100 /from 2020-01-01 1130 /to 2020-01-01 1200",
+                "meeting /from 2020-01-01 1100 /to 2020-01-01 1200 /to 2020-01-01 1300",
+                "meeting /from /to 2020-01-01 1200", "meeting /from 2020-01-01 1100 /to",
+                "meeting /by 2020-01-01 1100 /to 2020-01-01 1200")) {
+            assertEquals("Invalid format! Use: event <task> /from <start> /to <end>",
+                    assertThrows(EpiException.class, () -> parser.parseEvent(argument)).getMessage(), argument);
+        }
+    }
+
+    @Test
+    void parseTasks_whitespaceOnlyDescriptions_throwsExistingEmptyErrors() {
+        assertThrows(EpiException.class, () -> parser.parseTodo(" \t "));
+        assertThrows(EpiException.class, () -> parser.parseDeadline(" \t "));
+        assertThrows(EpiException.class, () -> parser.parseEvent(" \t "));
+    }
+
+    @Test
+    void parseTaskIndex_limitsAndExtraValues_doNotOverflowOrIgnoreArguments() throws EpiException {
+        TaskList tasks = new TaskList();
+        tasks.add(new Todo("book"));
+        assertEquals(0, parser.parseTaskIndex(" 1 ", tasks));
+        for (String number : List.of("-2147483648", "2147483647", "0", "-1")) {
+            assertThrows(EpiException.class, () -> parser.parseTaskIndex(number, tasks));
+        }
+        for (String number : List.of("99999999999999999999", "1 2", "1.0", "one")) {
+            assertThrows(NumberFormatException.class, () -> parser.parseTaskIndex(number, tasks));
+        }
     }
 }

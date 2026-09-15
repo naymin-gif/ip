@@ -85,7 +85,66 @@ public final class GuiSmokeCheck {
         checkLayout(stress);
         savePreview(stress, reports.resolve("long-text.png"));
         System.out.println("PASS: a long unbroken description wraps at compact width");
+        checkErrorHandling(reports);
         System.out.println("All GUI smoke checks passed. Scene previews: " + reports);
+    }
+
+    /** Checks semantic error cards and protected data using only this run's isolated task file. */
+    private static void checkErrorHandling(Path reports) throws Exception {
+        BorderPane root = createScene(420, 480);
+        submit(root, "unknown-command", false);
+        checkErrorCard(root);
+        submit(root, "deadline book /by 2020-02-30 1200", true);
+        checkErrorCard(root);
+        submit(root, "event meeting /from 2020-01-01 1200 /to 2020-01-01 1200", false);
+        checkErrorCard(root);
+        savePreview(root, reports.resolve("errors.png"));
+        submit(root, "todo Invalid date format! Meow!", true);
+        check(conversation(root).getChildren().getLast().lookup(".error-message") == null,
+                "Successful user text was mistaken for an error");
+        check(lastReply(root).getText().contains("I have added this task:"), "Valid addition did not succeed");
+
+        Path taskFile = Path.of("data/epi.txt");
+        String damaged = "T | 1 | valid task\nbroken record\nT | 0 | last task\n";
+        Files.writeString(taskFile, damaged);
+        BorderPane recovered = createScene(600, 700);
+        check(conversation(recovered).getChildren().size() == 2, "Expected greeting and one startup warning card");
+        checkErrorCard(recovered);
+        check(lastReply(recovered).getText().contains("line 2"), "The damaged line was not identified");
+        check(lastReply(recovered).getText().contains("Repair it and restart Epi."), "Missing recovery guidance");
+        submit(recovered, "list", false);
+        check(lastReply(recovered).getText().contains("1. [T][X] valid task"), "Valid records were not recovered");
+        check(lastReply(recovered).getText().contains("2. [T][ ] last task"), "Recovered ordering was lost");
+        submit(recovered, "delete 1", true);
+        checkErrorCard(recovered);
+        check(Files.readString(taskFile).equals(damaged), "A damaged file was overwritten");
+        savePreview(recovered, reports.resolve("storage-warning.png"));
+
+        String repaired = "T | 0 | saved task\n";
+        Files.writeString(taskFile, repaired);
+        BorderPane unavailable = createScene(420, 480);
+        check(conversation(unavailable).getChildren().size() == 1, "A repaired file still triggers warnings");
+        Files.delete(taskFile);
+        Files.createDirectory(taskFile);
+        submit(unavailable, "mark 1", false);
+        checkErrorCard(unavailable);
+        check(lastReply(unavailable).getText().contains("No task changes were kept"), "Save failure was hidden");
+        submit(unavailable, "list", true);
+        check(lastReply(unavailable).getText().contains("1. [T][ ] saved task"), "A failed save changed live tasks");
+        check(Files.isDirectory(taskFile), "An unavailable task path was replaced");
+        Files.delete(taskFile);
+        Files.writeString(taskFile, repaired);
+        System.out.println("PASS: labelled error cards, error-like user text,"
+                + " startup recovery, and failed-save rollback");
+    }
+
+    /** Verifies an error has an explicit label and usable layout, without relying on colour alone. */
+    private static void checkErrorCard(BorderPane root) {
+        Node row = conversation(root).getChildren().getLast();
+        check(row.lookup(".error-message") != null, "An error is missing its distinct card style");
+        check(((Label) row.lookup(".speaker")).getText().equals("Epi - needs attention"),
+                "An error is missing its explicit label");
+        checkLayout(root);
     }
 
     /** Loads the real layout and stylesheet into a scene of the requested size. */

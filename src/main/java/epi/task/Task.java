@@ -8,8 +8,25 @@ public class Task {
     protected boolean isDone;
     /** Creates an incomplete task with the given description. */
     public Task(String description) {
+        if (description == null || description.isBlank()) {
+            throw new IllegalArgumentException("Meow! A task needs a description.");
+        }
+        if (description.contains("|") || description.contains("\n") || description.contains("\r")) {
+            throw new IllegalArgumentException("Meow! Task descriptions must stay on one line and cannot contain '|'.");
+        }
         this.description = description;
         this.isDone = false;
+    }
+
+    /** Copies a valid task's immutable description and independent completion state. */
+    protected Task(Task original) {
+        this.description = original.description;
+        this.isDone = original.isDone;
+    }
+
+    /** Returns an independent task snapshot for a change that has not yet been saved. */
+    public Task copy() {
+        return new Task(this);
     }
 
     /** Marks this task as completed. */

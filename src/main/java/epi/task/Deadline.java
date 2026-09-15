@@ -16,6 +16,16 @@ public class Deadline extends Task {
         this.by = LocalDateTime.parse(byString, INPUT_FORMAT);
     }
 
+    /**
+     * Returns the deadline's due date/time for chronological sorting.
+     *
+     * @return the due date/time
+     */
+    @Override
+    public LocalDateTime getSortDate() {
+        return by;
+    }
+
     /** Returns the serialized deadline representation. */
     @Override
     public String toFileFormat() {

@@ -1,5 +1,6 @@
 package epi.parser;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -61,5 +62,51 @@ class ParserTest {
         tasks.add(new Todo("read book"));
 
         assertEquals(0, parser.parseTaskIndex("1", tasks));
+    }
+
+    @Test
+    void parseInput_whitespaceAndCommandOnly_preservesExistingSplittingRules() {
+        assertArrayEquals(new String[]{"list"}, parser.parseInput("  list  "));
+        assertArrayEquals(new String[]{"todo", "Read Book"}, parser.parseInput("  todo\t Read Book  "));
+    }
+
+    @Test
+    void parseTodo_emptyDescription_throwsEpiException() {
+        assertThrows(EpiException.class, () -> parser.parseTodo(""));
+    }
+
+    @Test
+    void parseDeadline_missingFields_throwsEpiException() {
+        assertThrows(EpiException.class, () -> parser.parseDeadline(""));
+        assertThrows(EpiException.class, () -> parser.parseDeadline(" /by 2019-12-02 1800"));
+        assertThrows(EpiException.class, () -> parser.parseDeadline("return book /by "));
+    }
+
+    @Test
+    void parseEvent_missingFields_throwsEpiException() {
+        assertThrows(EpiException.class, () -> parser.parseEvent(""));
+        assertThrows(EpiException.class, () -> parser.parseEvent("meeting"));
+        assertThrows(EpiException.class, () -> parser.parseEvent(" /from 2019-12-02 1400 /to 2019-12-02 1600"));
+        assertThrows(EpiException.class, () -> parser.parseEvent("meeting /from  /to 2019-12-02 1600"));
+        assertThrows(EpiException.class, () -> parser.parseEvent("meeting /from 2019-12-02 1400 /to "));
+    }
+
+    @Test
+    void parseTaskIndex_outsideList_throwsEpiException() {
+        TaskList tasks = new TaskList();
+        tasks.add(new Todo("read book"));
+        assertThrows(EpiException.class, () -> parser.parseTaskIndex("0", tasks));
+        assertThrows(EpiException.class, () -> parser.parseTaskIndex("-1", tasks));
+        assertThrows(EpiException.class, () -> parser.parseTaskIndex("2", tasks));
+        assertThrows(EpiException.class, () -> parser.parseTaskIndex("1", new TaskList()));
+    }
+
+    @Test
+    void parseTaskIndex_missingOrNonNumeric_reportsExistingErrors() {
+        TaskList tasks = new TaskList();
+        tasks.add(new Todo("read book"));
+        assertThrows(EpiException.class, () -> parser.parseTaskIndex("", tasks));
+        assertThrows(NumberFormatException.class, () -> parser.parseTaskIndex("abc", tasks));
+        assertThrows(NumberFormatException.class, () -> parser.parseTaskIndex("2147483648", tasks));
     }
 }

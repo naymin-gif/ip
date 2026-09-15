@@ -1,6 +1,7 @@
 package epi.task;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /** Maintains the ordered collection of tasks used by the application. */
@@ -46,6 +47,19 @@ public class TaskList implements Iterable<Task> {
             }
         }
         return matches;
+    }
+
+    /**
+     * Returns tasks in earliest-first date order without changing the original list.
+     * Undated tasks come last; tasks with equal dates retain their insertion order.
+     *
+     * @return a new list containing the existing task objects in date order
+     */
+    public List<Task> getSortedByDate() {
+        List<Task> sortedTasks = new ArrayList<>(tasks);
+        sortedTasks.sort(Comparator.comparing(Task::getSortDate,
+                Comparator.nullsLast(Comparator.naturalOrder())));
+        return sortedTasks;
     }
 
     /** Returns the zero-based index of a task in the list. */

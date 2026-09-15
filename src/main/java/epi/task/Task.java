@@ -1,5 +1,7 @@
 package epi.task;
 
+import java.time.LocalDateTime;
+
 /** Represents a generic task with a description and completion state. */
 public class Task {
     protected String description;
@@ -23,6 +25,15 @@ public class Task {
     /** Returns the status marker used when displaying this task. */
     public String getStatusIcon() {
         return (isDone ? "X" : " "); // mark done task with X
+    }
+
+    /**
+     * Returns the date/time used to order this task chronologically.
+     *
+     * @return the relevant date/time, or null for an undated task
+     */
+    public LocalDateTime getSortDate() {
+        return null;
     }
 
     /** Returns the serialized representation used by persistent storage. */

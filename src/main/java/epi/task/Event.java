@@ -19,6 +19,16 @@ public class Event extends Task {
         this.to = LocalDateTime.parse(toString, INPUT_FORMAT);
     }
 
+    /**
+     * Returns the event's start date/time for chronological sorting.
+     *
+     * @return the start date/time, not the end date/time
+     */
+    @Override
+    public LocalDateTime getSortDate() {
+        return from;
+    }
+
     /** Returns the user-facing event representation. */
     @Override
     public String toString() {

@@ -6,4 +6,9 @@ public class EpiException extends Exception {
     public EpiException(String message) {
         super(message);
     }
+
+    /** Preserves the technical cause while supplying a safe, actionable user message. */
+    public EpiException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

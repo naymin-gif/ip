@@ -1,5 +1,6 @@
 package epi.gui;
 
+import epi.CommandResult;
 import epi.Epi;
 import javafx.fxml.FXML;
 import javafx.scene.control.ScrollPane;
@@ -22,6 +23,9 @@ public class MainWindow {
     public void initialize() {
         dialogContainer.heightProperty().addListener(observable -> scrollPane.setVvalue(1.0));
         addEpiMessage("Meowdy! I'm Epi. What can I help you with today?");
+        if (!epi.getLoadingWarnings().isEmpty()) {
+            dialogContainer.getChildren().add(DialogBox.error(String.join("\n", epi.getLoadingWarnings())));
+        }
     }
 
     /** Processes the entered command when the user submits it. */
@@ -32,8 +36,9 @@ public class MainWindow {
             return;
         }
         addUserMessage(input);
-        String response = String.join("\n", epi.processCommand(input));
-        addEpiMessage(response);
+        CommandResult result = epi.processCommandResult(input);
+        String response = String.join("\n", result.lines());
+        dialogContainer.getChildren().add(result.error() ? DialogBox.error(response) : DialogBox.epi(response));
         userInput.clear();
         userInput.requestFocus();
     }

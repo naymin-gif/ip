@@ -7,6 +7,16 @@ public class Todo extends Task {
         super(description);
     }
 
+    private Todo(Todo original) {
+        super(original);
+    }
+
+    /** Returns an independent todo snapshot, preserving its completion state. */
+    @Override
+    public Todo copy() {
+        return new Todo(this);
+    }
+
     /** Returns the serialized todo representation. */
     @Override
     public String toFileFormat() {

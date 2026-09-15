@@ -109,3 +109,12 @@
     -fx-font-weight: bold;
     -fx-text-fill: #735584;
 }
+
+.error-message {
+    -fx-background-color: #fff0ed;
+    -fx-border-color: transparent transparent transparent #ad4034;
+}
+
+.error-message .speaker {
+    -fx-text-fill: #94382e;
+}

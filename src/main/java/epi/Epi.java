@@ -4,6 +4,7 @@ import java.time.DateTimeException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.function.Consumer;
 
 import epi.exception.EpiException;
 import epi.parser.Parser;
@@ -29,7 +30,6 @@ public class Epi {
         ui = new ConsoleUi();
         storage = new Storage(filePath);
         parser = new Parser();
-        storage.prepareFile();
         tasks = storage.load();
         if (!showBanner) {
             return;
@@ -45,10 +45,21 @@ public class Epi {
         ui.showLine(banner);
         ui.showLine("Meowdy! I'm Epi");
         ui.showLine("Are you ready to tackle some purr-fectly good tasks today?");
+        getLoadingWarnings().forEach(ui::showLine);
     }
 
     /** Processes one command and returns the lines that should be shown to a user interface. */
     public List<String> processCommand(String input) {
+        return processCommandResult(input).lines();
+    }
+
+    /** Returns startup warnings without hiding file errors in a GUI-only process's console. */
+    public List<String> getLoadingWarnings() {
+        return storage.getWarnings();
+    }
+
+    /** Processes a command, distinguishing errors from successful replies without examining their wording. */
+    public CommandResult processCommandResult(String input) {
         assert input != null : "A command must be provided to Epi";
         List<String> output = new ArrayList<>();
         try {
@@ -57,8 +68,10 @@ public class Epi {
             String command = commandParts[0].toLowerCase(Locale.ROOT);
             String argument = commandParts.length > 1 ? commandParts[1] : "";
             if (command.equals("bye")) {
+                requireNoArgument(command, argument);
                 output.add("Meow for now. See you later!");
             } else if (command.equals("list")) {
+                requireNoArgument(command, argument);
                 if (tasks.size() == 0) {
                     throw new EpiException("Purr! There is no task in your list");
                 }
@@ -88,51 +101,72 @@ public class Epi {
             } else if (command.equals("delete")) {
                 int taskIdx = parser.parseTaskIndex(argument, tasks);
                 assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
-                tasks.delete(taskIdx);
+                applyChange(updated -> updated.delete(taskIdx));
                 output.add("Noted, I'll remove that from the task pile");
                 output.add("Now you have " + tasks.size() + " tasks in the list");
-                storage.save(tasks);
             } else if (command.equals("mark") || command.equals("unmark")) {
                 int taskIdx = parser.parseTaskIndex(argument, tasks);
                 assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
+                applyChange(updated -> {
+                    if (command.equals("mark")) {
+                        updated.get(taskIdx).markAsDone();
+                    } else {
+                        updated.get(taskIdx).markAsUndone();
+                    }
+                });
                 if (command.equals("mark")) {
-                    tasks.get(taskIdx).markAsDone();
                     output.add("About time you finished something. I've marked it as done:");
                 } else {
-                    tasks.get(taskIdx).markAsUndone();
                     output.add("Slacking off, are we? I've marked this as not done:");
                 }
                 output.add(tasks.get(taskIdx).toString());
-                storage.save(tasks);
             } else if (command.equals("todo")) {
-                tasks.add(parser.parseTodo(argument));
+                Task task = parser.parseTodo(argument);
+                applyChange(updated -> updated.add(task));
                 output.add("More work? Fine. I have added this task:");
                 output.add(tasks.get(tasks.size() - 1).toString());
                 output.add("Now you have " + tasks.size() + " tasks in the list.");
-                storage.save(tasks);
             } else if (command.equals("deadline")) {
-                tasks.add(parser.parseDeadline(argument));
+                Task task = parser.parseDeadline(argument);
+                applyChange(updated -> updated.add(task));
                 output.add("A deadline? Better not miss it. I have added this task:");
                 output.add(tasks.get(tasks.size() - 1).toString());
                 output.add("Now you have " + tasks.size() + " tasks in the list.");
-                storage.save(tasks);
             } else if (command.equals("event")) {
-                tasks.add(parser.parseEvent(argument));
+                Task task = parser.parseEvent(argument);
+                applyChange(updated -> updated.add(task));
                 output.add("An event? I hope there will be treats. I have added this task:");
                 output.add(tasks.get(tasks.size() - 1).toString());
                 output.add("Now you have " + tasks.size() + " tasks in the list.");
-                storage.save(tasks);
             } else {
                 throw new EpiException("I do not understand what that means, Human.");
             }
         } catch (EpiException e) {
-            output.add(e.getMessage());
+            return new CommandResult(List.of(e.getMessage()), true);
         } catch (NumberFormatException e) {
-            output.add("That is not a valid number");
+            return new CommandResult(List.of("That is not a valid number"), true);
         } catch (DateTimeException e) {
-            output.add("Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)");
+            return new CommandResult(List.of(
+                    "Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)"), true);
+        } catch (IllegalArgumentException e) {
+            return new CommandResult(List.of(e.getMessage()), true);
         }
-        return output;
+        return new CommandResult(output, false);
+    }
+
+    /** Publishes a task change in memory only after the complete new snapshot has been saved. */
+    private void applyChange(Consumer<TaskList> change) throws EpiException {
+        TaskList updated = tasks.copy();
+        change.accept(updated);
+        storage.save(updated);
+        tasks = updated;
+    }
+
+    /** Rejects ignored trailing text so malformed commands do not look successful. */
+    private void requireNoArgument(String command, String argument) throws EpiException {
+        if (!argument.isBlank()) {
+            throw new EpiException("Meow! Use: " + command);
+        }
     }
 
     /** Runs the command loop until the user exits or input ends. */
@@ -150,7 +184,7 @@ public class Epi {
     /** Returns whether the user input requests termination of the command loop. */
     private boolean isExitCommand(String input) {
         String[] commandParts = parser.parseInput(input);
-        return commandParts[0].equalsIgnoreCase("bye");
+        return commandParts.length == 1 && commandParts[0].equalsIgnoreCase("bye");
     }
 
     /** Displays the common confirmation shown after adding a task. */

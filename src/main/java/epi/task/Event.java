@@ -3,11 +3,17 @@ package epi.task;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
 import java.time.format.DateTimeParseException;
+import java.time.format.ResolverStyle;
+import java.time.temporal.ChronoField;
+import java.util.Locale;
 
 /** Represents a task with a start and end date/time. */
 public class Event extends Task {
-    private static final DateTimeFormatter INPUT_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+    private static final DateTimeFormatter INPUT_FORMAT = new DateTimeFormatterBuilder()
+            .appendPattern("yyyy-MM-dd HHmm").parseDefaulting(ChronoField.ERA, 1).toFormatter(Locale.ROOT)
+            .withResolverStyle(ResolverStyle.STRICT);
     private static final DateTimeFormatter OUTPUT_FORMAT = DateTimeFormatter.ofPattern("MMM dd yyyy, h:mm a");
     protected LocalDateTime from;
     protected LocalDateTime to;
@@ -17,6 +23,21 @@ public class Event extends Task {
         super(description);
         this.from = LocalDateTime.parse(fromString, INPUT_FORMAT);
         this.to = LocalDateTime.parse(toString, INPUT_FORMAT);
+        if (!this.to.isAfter(this.from)) {
+            throw new IllegalArgumentException("Meow! An event must end after it starts.");
+        }
+    }
+
+    private Event(Event original) {
+        super(original);
+        this.from = original.from;
+        this.to = original.to;
+    }
+
+    /** Returns an independent event snapshot; its date/time values are immutable. */
+    @Override
+    public Event copy() {
+        return new Event(this);
     }
 
     /**

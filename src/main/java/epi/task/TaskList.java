@@ -13,6 +13,15 @@ public class TaskList implements Iterable<Task> {
         this.tasks = new ArrayList<>();
     }
 
+    /** Returns an independent snapshot so a failed save cannot alter the live task list. */
+    public TaskList copy() {
+        TaskList snapshot = new TaskList();
+        for (Task task : tasks) {
+            snapshot.add(task.copy());
+        }
+        return snapshot;
+    }
+
     /** Adds a task to the end of the list. */
     public void add(Task task) {
         assert task != null : "A task list must not contain null tasks";

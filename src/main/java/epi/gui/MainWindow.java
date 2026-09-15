@@ -35,6 +35,7 @@ public class MainWindow {
         String response = String.join("\n", epi.processCommand(input));
         addEpiMessage(response);
         userInput.clear();
+        userInput.requestFocus();
     }
 
     private void addUserMessage(String message) {

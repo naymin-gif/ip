@@ -100,3 +100,21 @@ tasks.register('prepareUiTests') {
         output.setText(groovy.json.JsonOutput.toJson(runtime), 'UTF-8')
     }
 }
+
+tasks.register('guiSmokeTest', JavaExec) {
+    group = 'verification'
+    description = 'Check JavaFX layout in an isolated session and save scene previews (requires a desktop).'
+    dependsOn tasks.named('testClasses')
+    classpath = sourceSets.test.runtimeClasspath
+    mainClass = 'epi.gui.GuiSmokeCheck'
+    enableAssertions = true
+    systemProperty 'user.language', 'en'
+    systemProperty 'user.country', 'US'
+    systemProperty 'epi.guiReportDirectory', layout.buildDirectory.dir('reports/gui-smoke').get().asFile.absolutePath
+
+    doFirst {
+        // Never load personal tasks or reuse data from a previous GUI test run.
+        workingDir = new File(temporaryDir, UUID.randomUUID().toString())
+        workingDir.mkdirs()
+    }
+}

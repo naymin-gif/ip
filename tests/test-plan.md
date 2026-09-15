@@ -24,8 +24,9 @@ Maintain the project's approximately 50% highest-value-method target, prioritizi
 - `StorageTest`: existing pipe-delimited records, all task types/statuses/dates, UTF-8 text, file paths with spaces, overwrite/empty saves, and independent files. Every file lives under JUnit `@TempDir`.
 - `ParserTest`: current splitting rules, required fields, and invalid task numbers.
 - `TaskListTest` and `TaskTest`: collection/order/search/status tests, plus date sorting across years/times/types, event-start ordering, stable ties, completed/undated tasks, empty/single lists, and a structurally independent sorted copy.
+- `DialogBoxTest`: responsive bot/user content widths, initial/tiny layout widths, expansion beyond the old fixed limit, and centred square crops for portrait/landscape/square/fractional image sizes.
 
-GUI layout and avatar rendering are not automated by this suite; `EpiTest` exercises the backend shared by the CLI and GUI. Migration, malformed-file recovery, relative-date parsing, and other extension behavior remain out of scope.
+The **A-BetterGui** increment does not change any console input or expected output below. `EpiTest` exercises the backend shared by the CLI and GUI. See [gui-test-plan.md](gui-test-plan.md) for the separate optional JavaFX scene checks and manual window checks. Migration, malformed-file recovery, relative-date parsing, and other extension behavior remain out of scope.
 
 ## Shared startup
 

@@ -13,7 +13,19 @@ event project meeting /from 2019-12-02 1400 /to 2019-12-02 1600
 
 For example, the deadline is displayed as `Dec 02 2019, 6:00 PM` in an English locale. Words such as `Sunday` are not supported yet. `find` already supports case-insensitive partial description matching and displays the original list numbers. With no matches, the current response contains only the search heading.
 
-The selected extension is **C-Sort only**. Existing commands, their messages, the GUI layout, and the pipe-delimited storage format are unchanged. Epi still uses `data/epi.txt` relative to its working directory. Other C extensions, including `--data`, are not included.
+The selected category C extension is **C-Sort only**. Existing commands, their messages, and the pipe-delimited storage format are unchanged. Epi still uses `data/epi.txt` relative to its working directory. Other C extensions, including `--data`, are not included.
+
+## Chat window (A-BetterGui)
+
+Run `./gradlew run` in Git Bash or `.\gradlew.bat run` in PowerShell after setting up Java 25 as described below.
+
+- Epi's replies are left-aligned response cards; your commands are compact, right-aligned bubbles. Speaker labels identify both sides without relying on colour alone.
+- One complete response, including a multi-line task list, stays in one card.
+- Message widths respond to the window size. Widen the window to give long task descriptions more room, or shrink it for a compact view. The initial scene is 600 by 700 pixels; the minimum outer window size is 420 by 480 pixels.
+- Both original profile photos are retained. The GUI displays small, centred, rounded-square crops without changing the image files.
+- Type a command and press Enter or click **Send**. The input regains focus after sending; keyboard focus on the input and Send button has a visible outline.
+
+This increment changes presentation only. It preserves Epi's cat-themed wording, command syntax, task numbering, persistence, and existing `bye` behavior. Error responses still use ordinary Epi cards; error classification and storage-error recovery are separate future work.
 
 ## Sorting tasks by date (C-Sort)
 
@@ -76,6 +88,7 @@ Run the console command only after the Gradle checks succeed. PowerShell 7 (`pws
 ### What is checked
 
 - JUnit covers parsing, task operations, complete command replies, persistence/reloads, chronological sorting, stable ties, undated/completed tasks, unchanged saved files, and original task numbers after sorting.
+- `DialogBoxTest` covers responsive width and centred avatar-crop calculations without starting JavaFX.
 - The automated console cases live in [tests/test-plan.md](../tests/test-plan.md). The Markdown is test input, not merely illustrative output: the runner reads and executes its cases.
 - Every console case gets a separate temporary working directory. Neither your real `data/epi.txt` nor another case's data is used.
 - Expected output is checked case-sensitively, including the startup banner and full responses. Only trailing whitespace and line-ending differences are ignored. Extra output also fails.
@@ -90,6 +103,16 @@ Run the console command only after the Gradle checks succeed. PowerShell 7 (`pws
 
 The transcript is replaced on each run. Successful temporary console directories are cleaned up; failed-session files are retained at the location printed in the transcript. A successful run ends with `All 17 UI tests passed.` Both Gradle and the console script return a nonzero exit code on failure.
 
-After relevant code changes, update the JUnit tests and console plan, retaining the approximately 50% highest-value-method JUnit coverage target. This is a prioritization target, not a claimed measured line-coverage percentage. GUI layout/avatar checks remain manual; the console runner does not open JavaFX windows.
+After relevant code changes, update the JUnit tests and console plan, retaining the approximately 50% highest-value-method JUnit coverage target. This is a prioritization target, not a claimed measured line-coverage percentage. The console runner does not open JavaFX windows.
+
+### Checking the GUI
+
+On a machine with a graphical desktop, run `./gradlew guiSmokeTest` (Git Bash) or `.\gradlew.bat guiSmokeTest` (PowerShell). This optional task is separate from ordinary JUnit tests so headless environments can still run `test`.
+
+It loads the real FXML, CSS, controller, and images, exercises Enter/Send actions, and checks message wrapping, width bounds, original task numbers, avatar crops, and automatic scrolling. Each run uses a new directory under `build/tmp/guiSmokeTest`; it never reads or changes your personal `data/epi.txt`.
+
+Scene previews are saved under `build/reports/gui-smoke/`: `compact.png`, `default.png`, `wide.png`, and `long-text.png`. They are JavaFX-rendered scenes, not full operating-system window screenshots. The test opens no visible window, but requires the JavaFX graphics runtime and a desktop environment. It stops on the first failed assertion.
+
+Use [the GUI test plan](../tests/gui-test-plan.md) for actual window resizing, keyboard focus, mouse interaction, and visual checks. Those checks complement the automated scene tests; they are not performed by the console runner.
 
 Generated reports, build outputs, local caches, and personal task data should not be committed.

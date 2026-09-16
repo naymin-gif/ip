@@ -1,12 +1,30 @@
 package epi.task;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 
 import org.junit.jupiter.api.Test;
 class TaskTest {
+
+    @Test
+    void isDone_statusChanges_reportsCurrentState() {
+        Task task = new Task("read book");
+        assertFalse(task.isDone());
+
+        task.markAsDone();
+        assertTrue(task.isDone());
+        task.markAsDone();
+        assertTrue(task.isDone());
+
+        task.markAsUndone();
+        assertFalse(task.isDone());
+        task.markAsUndone();
+        assertFalse(task.isDone());
+    }
 
     @Test
     void constructor_unsafeDescriptions_rejectsUnserializableData() {

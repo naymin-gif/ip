@@ -15,6 +15,26 @@ For example, the deadline is displayed as `Dec 02 2019, 6:00 PM` in an English l
 
 The selected category C extension is **C-Sort only**. Epi still uses `data/epi.txt` relative to its working directory, in the existing pipe-delimited format. Other C extensions, including `--data` and duplicate rejection, are not included. **A-MoreErrorHandling** adds the validation and file protections described below.
 
+## Marking and unmarking tasks
+
+Use `mark 1` to complete task 1 and `unmark 1` to make it incomplete. Task numbers refer to the full list, including after a search or sort.
+
+If the task already has the requested status, Epi reports it without changing tasks or saving the file:
+
+```text
+Purr! Task 1 is already marked as done.
+[T][X] read book
+```
+
+For an already incomplete task:
+
+```text
+Meow! Task 1 is already marked as not done.
+[T][ ] read book
+```
+
+These are normal informational replies in both interfaces, not red error cards. Actual status changes retain their existing confirmations and are saved before success is reported. Repeated commands only describe the current in-memory status; they do not check or repair storage problems. Invalid task numbers still produce errors.
+
 ## Chat window (A-BetterGui)
 
 Run `./gradlew run` in Git Bash or `.\gradlew.bat run` in PowerShell after setting up Java 25 as described below.
@@ -45,7 +65,7 @@ Rejected commands do not alter memory or the saved file. Correct the input and s
 ### Task-file problems
 
 - On startup, a missing `data/` folder or `epi.txt` is created when permissions allow. A bad path, directory/symbolic link in place of the file, denied access, or invalid UTF-8 produces a visible warning. Epi remains usable for reading; edits are blocked until the issue is repaired and Epi restarted.
-- If individual records are malformed, valid rows are shown in their original order and numbered consecutively. Warnings identify bad file line numbers. **The original file is not rewritten, and all editing commands are blocked**, preventing a save from discarding damaged records. Blank lines are ignored.
+- If individual records are malformed, valid rows are shown in their original order and numbered consecutively. Warnings identify bad file line numbers. **The original file is not rewritten, and all changes to tasks are blocked**, preventing a save from discarding damaged records. Blank lines are ignored.
 - Saving first writes a complete task snapshot to a temporary file in the same folder, then atomically replaces `epi.txt`. If saving fails, no change is published to the in-memory task list and no success confirmation is shown. Check the folder/file permissions or available disk space, then retry the command. The folder needs permission to create and rename files, not just to write inside `epi.txt`.
 - Filesystems without atomic replacement support report an error; Epi does not fall back to truncating the original file. Use a local folder that supports atomic file moves. A failed cleanup may leave a uniquely named `.epi-*.tmp` scratch file; it is not loaded as task data.
 - If the file disappears during a session, saving fails rather than silently recreating it. If its bytes have changed since loading or the last successful save, Epi refuses a stale overwrite and asks you to restart. This is a safeguard, not multi-process locking: use one Epi instance per file and avoid editing it while Epi runs.
@@ -112,7 +132,7 @@ Run the console command only after the Gradle checks succeed. PowerShell 7 (`pws
 
 ### What is checked
 
-- JUnit covers parsing, task operations, complete command replies, persistence/reloads, chronological sorting, stable ties, undated/completed tasks, unchanged saved files, and original task numbers after sorting. Error-handling tests cover strict dates, malformed fields, task-number limits, damaged records, denied I/O, unsupported atomic replacement, external changes, and rollback of every mutating command.
+- JUnit covers parsing, task operations, complete command replies, persistence/reloads, repeated mark/unmark without saving, chronological sorting, stable ties, undated/completed tasks, unchanged saved files, and original task numbers after sorting. Error-handling tests cover strict dates, malformed fields, task-number limits, damaged records, denied I/O, unsupported atomic replacement, external changes, and rollback of every mutating command.
 - `DialogBoxTest` covers responsive width and centred avatar-crop calculations without starting JavaFX.
 - The automated console cases live in [tests/test-plan.md](../tests/test-plan.md). The Markdown is test input, not merely illustrative output: the runner reads and executes its cases.
 - Every console case gets a separate temporary working directory. Neither your real `data/epi.txt` nor another case's data is used.
@@ -126,7 +146,7 @@ Run the console command only after the Gradle checks succeed. PowerShell 7 (`pws
 - Checkstyle reports: `build/reports/checkstyle/main.html` and `test.html`.
 - Console transcript: `build/reports/ui-tests/transcript.txt`.
 
-The transcript is replaced on each run. Successful temporary console directories are cleaned up; failed-session files are retained at the location printed in the transcript. A successful run ends with `All 21 UI tests passed.` Both Gradle and the console script return a nonzero exit code on failure.
+The transcript is replaced on each run. Successful temporary console directories are cleaned up; failed-session files are retained at the location printed in the transcript. A successful run ends with `All 22 UI tests passed.` Both Gradle and the console script return a nonzero exit code on failure.
 
 After relevant code changes, update the JUnit tests and console plan, retaining the approximately 50% highest-value-method JUnit coverage target. This is a prioritization target, not a claimed measured line-coverage percentage. The console runner does not open JavaFX windows.
 

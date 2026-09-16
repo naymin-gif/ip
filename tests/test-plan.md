@@ -20,7 +20,7 @@ On the first failure, stop, show the actual and expected output, and retain the 
 
 Maintain the project's approximately 50% highest-value-method target, prioritizing core behavior rather than a line-coverage percentage. After relevant changes, update the tests and this plan, then run Gradle `test checkstyleMain checkstyleTest` and the console runner.
 
-- `EpiTest`: full command responses, task numbering, validation without mutation, read-only commands, and reload after add/mark/unmark/delete. C-Sort tests check exact replies, original numbers for subsequent mutations, unchanged file contents/modification time, invalid arguments, and sorting after reload.
+- `EpiTest`: full command responses, task numbering, validation without mutation, read-only commands, and reload after add/mark/unmark/delete. Repeated mark/unmark tests cover all task types, informational replies, unchanged file contents/modification time, and no save attempts when storage is unavailable. C-Sort tests check exact replies, original numbers for subsequent mutations, unchanged file contents/modification time, invalid arguments, and sorting after reload.
 - `StorageTest`: existing records, round trips, UTF-8 text, paths with spaces, missing files, damaged records/encoding, unusable paths, external edits, and preservation after failed saves. Access-denied and unsupported atomic moves are injected deterministically, without changing real permissions. Every file lives under JUnit `@TempDir`.
 - `ParserTest`: whitespace, case-insensitive markers, missing/repeated/wrong-order fields, and task-number boundaries/overflow.
 - `DeadlineTest` and `EventTest`: impossible dates, leap-year boundaries, invalid clock times, and equal/reversed event endpoints; valid overnight and one-minute events remain accepted.
@@ -28,6 +28,8 @@ Maintain the project's approximately 50% highest-value-method target, prioritizi
 - `DialogBoxTest`: responsive bot/user content widths, initial/tiny layout widths, expansion beyond the old fixed limit, and centred square crops for portrait/landscape/square/fractional image sizes.
 
 The original 17 cases remain unchanged; cases 18-21 protect stricter validation and recovery after rejected commands. `EpiTest` also verifies that every mutating command rolls back on failed saves, startup recovery blocks writes, and error classification does not depend on message text. `TaskListTest` checks independent snapshots, including completion flags, so failed status changes cannot leak into live tasks. See [gui-test-plan.md](gui-test-plan.md) for visible file warnings and the separate JavaFX scene/manual checks. File fixtures belong in JUnit and the isolated GUI smoke runner; the console cases below always start with a fresh empty file.
+
+Case 22 checks repeated mark/unmark feedback and unchanged task status. `TaskTest` also verifies the completion-state getter before and after repeated status changes.
 
 ## Shared startup
 
@@ -791,5 +793,54 @@ That is not a valid number
 That is not a valid number
 Here is your pile of tasks:
 1. [T][ ] keep me
+Meow for now. See you later!
+```
+
+## Test case 22: Report already marked or unmarked tasks
+
+### Aim
+
+Verify that repeated mark/unmark commands report the current status instead of claiming a change, while real transitions retain their existing confirmations. Also check mixed-case command names and separating spaces.
+
+### Input
+
+```text
+todo read book
+unmark 1
+unmark 1
+mark 1
+  MaRk   1
+mark 1
+list
+unmark 1
+  UnMaRk   1
+list
+bye
+```
+
+### Expected output
+
+```text
+More work? Fine. I have added this task:
+[T][ ] read book
+Now you have 1 tasks in the list.
+Meow! Task 1 is already marked as not done.
+[T][ ] read book
+Meow! Task 1 is already marked as not done.
+[T][ ] read book
+About time you finished something. I've marked it as done:
+[T][X] read book
+Purr! Task 1 is already marked as done.
+[T][X] read book
+Purr! Task 1 is already marked as done.
+[T][X] read book
+Here is your pile of tasks:
+1. [T][X] read book
+Slacking off, are we? I've marked this as not done:
+[T][ ] read book
+Meow! Task 1 is already marked as not done.
+[T][ ] read book
+Here is your pile of tasks:
+1. [T][ ] read book
 Meow for now. See you later!
 ```

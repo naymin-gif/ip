@@ -107,14 +107,21 @@ public class Epi {
             } else if (command.equals("mark") || command.equals("unmark")) {
                 int taskIdx = parser.parseTaskIndex(argument, tasks);
                 assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
+                boolean requestedDone = command.equals("mark");
+                if (tasks.get(taskIdx).isDone() == requestedDone) {
+                    String message = requestedDone
+                            ? "Purr! Task " + (taskIdx + 1) + " is already marked as done."
+                            : "Meow! Task " + (taskIdx + 1) + " is already marked as not done.";
+                    return new CommandResult(List.of(message, tasks.get(taskIdx).toString()), false);
+                }
                 applyChange(updated -> {
-                    if (command.equals("mark")) {
+                    if (requestedDone) {
                         updated.get(taskIdx).markAsDone();
                     } else {
                         updated.get(taskIdx).markAsUndone();
                     }
                 });
-                if (command.equals("mark")) {
+                if (requestedDone) {
                     output.add("About time you finished something. I've marked it as done:");
                 } else {
                     output.add("Slacking off, are we? I've marked this as not done:");

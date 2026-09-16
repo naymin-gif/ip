@@ -39,6 +39,15 @@ public class Task {
         this.isDone = false;
     }
 
+    /**
+     * Returns whether this task is completed.
+     *
+     * @return true if the task is done, otherwise false
+     */
+    public boolean isDone() {
+        return isDone;
+    }
+
     /** Returns the status marker used when displaying this task. */
     public String getStatusIcon() {
         return (isDone ? "X" : " "); // mark done task with X

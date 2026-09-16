@@ -80,6 +80,80 @@ class EpiTest {
     }
 
     @Test
+    void processCommand_markCompletedTask_reportsStatusWithoutSaving() throws IOException {
+        epi.processCommand("todo read book");
+        epi.processCommand("mark 1");
+        Epi reloaded = new Epi(taskFile.toString(), false);
+        List<String> original = reloaded.processCommand("list");
+        String saved = Files.readString(taskFile);
+        Files.setLastModifiedTime(taskFile, FileTime.from(Instant.parse("2000-01-01T00:00:00Z")));
+        FileTime lastModified = Files.getLastModifiedTime(taskFile);
+
+        for (String command : List.of("mark 1", "  MaRk   1  ")) {
+            CommandResult result = reloaded.processCommandResult(command);
+            assertFalse(result.error());
+            assertEquals(List.of("Purr! Task 1 is already marked as done.", "[T][X] read book"), result.lines());
+            assertEquals(original, reloaded.processCommand("list"));
+            assertEquals(saved, Files.readString(taskFile));
+            assertEquals(lastModified, Files.getLastModifiedTime(taskFile));
+        }
+    }
+
+    @Test
+    void processCommand_unmarkIncompleteTask_reportsStatusWithoutSaving() throws IOException {
+        epi.processCommand("todo read book");
+        List<String> original = epi.processCommand("list");
+        String saved = Files.readString(taskFile);
+        Files.setLastModifiedTime(taskFile, FileTime.from(Instant.parse("2000-01-01T00:00:00Z")));
+        FileTime lastModified = Files.getLastModifiedTime(taskFile);
+
+        for (String command : List.of("unmark 1", "  UnMaRk   1  ")) {
+            CommandResult result = epi.processCommandResult(command);
+            assertFalse(result.error());
+            assertEquals(List.of("Meow! Task 1 is already marked as not done.", "[T][ ] read book"), result.lines());
+            assertEquals(original, epi.processCommand("list"));
+            assertEquals(saved, Files.readString(taskFile));
+            assertEquals(lastModified, Files.getLastModifiedTime(taskFile));
+        }
+    }
+
+    @Test
+    void processCommand_repeatedStatusOnDatedTasks_preservesTaskDetails() {
+        epi.processCommand("deadline report /by 2019-12-02 1800");
+        epi.processCommand("event meeting /from 2019-12-02 1400 /to 2019-12-02 1600");
+
+        for (int taskNumber = 1; taskNumber <= 2; taskNumber++) {
+            CommandResult marked = epi.processCommandResult("mark " + taskNumber);
+            assertFalse(marked.error());
+            assertEquals(new CommandResult(List.of("Purr! Task " + taskNumber + " is already marked as done.",
+                    marked.lines().get(1)), false), epi.processCommandResult("mark " + taskNumber));
+
+            CommandResult unmarked = epi.processCommandResult("unmark " + taskNumber);
+            assertFalse(unmarked.error());
+            assertEquals(new CommandResult(List.of("Meow! Task " + taskNumber + " is already marked as not done.",
+                    unmarked.lines().get(1)), false), epi.processCommandResult("unmark " + taskNumber));
+        }
+    }
+
+    @Test
+    void processCommand_redundantStatusWithUnavailableSave_returnsInformation() throws IOException {
+        epi.processCommand("todo incomplete");
+        epi.processCommand("todo complete");
+        epi.processCommand("mark 2");
+        List<String> original = epi.processCommand("list");
+        Files.delete(taskFile);
+
+        assertEquals(new CommandResult(List.of("Purr! Task 2 is already marked as done.", "[T][X] complete"), false),
+                epi.processCommandResult("mark 2"));
+        assertEquals(new CommandResult(List.of("Meow! Task 1 is already marked as not done.", "[T][ ] incomplete"),
+                false), epi.processCommandResult("unmark 1"));
+        assertTrue(epi.processCommandResult("mark 1").error());
+        assertTrue(epi.processCommandResult("unmark 2").error());
+        assertEquals(original, epi.processCommand("list"));
+        assertFalse(Files.exists(taskFile));
+    }
+
+    @Test
     void processCommand_deleteMiddleTask_preservesOrderAndPersistsRemoval() {
         epi.processCommand("todo first");
         epi.processCommand("todo second");

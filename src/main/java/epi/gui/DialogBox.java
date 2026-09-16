@@ -18,6 +18,13 @@ public class DialogBox extends HBox {
     private static final double AVATAR_GAP = 10;
     private static final double USER_WIDTH_RATIO = 0.82;
 
+    /**
+     * Builds one message row with responsive text wrapping and a speaker-specific avatar.
+     *
+     * @param message Complete message text, including any line breaks.
+     * @param fromUser Whether the message belongs to the user rather than Epi.
+     * @param error Whether to apply error styling; callers use this only for Epi replies.
+     */
     private DialogBox(String message, boolean fromUser, boolean error) {
         setSpacing(AVATAR_GAP);
         setMinWidth(0);
@@ -54,7 +61,12 @@ public class DialogBox extends HBox {
         }
     }
 
-    /** Creates a small, centred, rounded-square crop without modifying the source photograph. */
+    /**
+     * Creates a small, centred, rounded-square crop without modifying the source photograph.
+     *
+     * @param fromUser Whether to load the user's avatar rather than Epi's.
+     * @return An image view sized and clipped for the corresponding speaker.
+     */
     private ImageView createAvatar(boolean fromUser) {
         double avatarSize = fromUser ? USER_AVATAR_SIZE : EPI_AVATAR_SIZE;
         String imagePath = fromUser
@@ -75,14 +87,27 @@ public class DialogBox extends HBox {
         return avatar;
     }
 
-    /** Reserves space for the avatar and gap, even during the initial zero-width layout pass. */
+    /**
+     * Reserves space for the avatar and gap, even during the initial zero-width layout pass.
+     *
+     * @param rowWidth Finite row width in pixels.
+     * @param fromUser Whether to reserve the user avatar size and apply the narrower user-message ratio.
+     * @return A nonnegative maximum content width in pixels.
+     */
     static double calculateContentWidth(double rowWidth, boolean fromUser) {
         double avatarSize = fromUser ? USER_AVATAR_SIZE : EPI_AVATAR_SIZE;
         double availableWidth = Math.max(0, rowWidth - avatarSize - AVATAR_GAP);
         return availableWidth * (fromUser ? USER_WIDTH_RATIO : 1);
     }
 
-    /** Finds the largest centred square inside a portrait, landscape, or square photograph. */
+    /**
+     * Finds the largest centred square inside a portrait, landscape, or square photograph.
+     *
+     * @param imageWidth Nonnegative image width in pixels.
+     * @param imageHeight Nonnegative image height in pixels.
+     * @return The square crop in source-image coordinates, centred on both axes.
+     * @throws IllegalArgumentException If either dimension is negative.
+     */
     static Rectangle2D calculateAvatarViewport(double imageWidth, double imageHeight) {
         double side = Math.min(imageWidth, imageHeight);
         return new Rectangle2D((imageWidth - side) / 2, (imageHeight - side) / 2, side, side);
@@ -108,7 +133,12 @@ public class DialogBox extends HBox {
         return new DialogBox(message, false, false);
     }
 
-    /** Creates a labelled error card; the wording is supplied by the backend, not used to detect errors. */
+    /**
+     * Creates a labelled error card; the wording is supplied by the backend, not used to detect errors.
+     *
+     * @param message Complete error response, including any line breaks.
+     * @return A left-aligned Epi message row with error styling and an attention label.
+     */
     public static DialogBox error(String message) {
         return new DialogBox(message, false, true);
     }

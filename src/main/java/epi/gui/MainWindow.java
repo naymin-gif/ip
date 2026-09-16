@@ -18,7 +18,10 @@ public class MainWindow {
 
     private final Epi epi = new Epi("./data/epi.txt", false);
 
-    /** Initializes automatic scrolling for the conversation area. */
+    /**
+     * Initializes automatic scrolling and displays the greeting and any loading warnings.
+     * Called by the FXML loader after the controls have been injected.
+     */
     @FXML
     public void initialize() {
         dialogContainer.heightProperty().addListener(observable -> scrollPane.setVvalue(1.0));
@@ -28,7 +31,10 @@ public class MainWindow {
         }
     }
 
-    /** Processes the entered command when the user submits it. */
+    /**
+     * Processes nonblank input and displays the complete response in one message card.
+     * Error responses receive distinct styling; focus returns to the cleared input field.
+     */
     @FXML
     private void handleUserInput() {
         String input = userInput.getText().trim();
@@ -43,10 +49,20 @@ public class MainWindow {
         userInput.requestFocus();
     }
 
+    /**
+     * Appends a user message to the conversation.
+     *
+     * @param message Complete user input to display.
+     */
     private void addUserMessage(String message) {
         dialogContainer.getChildren().add(DialogBox.user(message));
     }
 
+    /**
+     * Appends a normal Epi response to the conversation.
+     *
+     * @param message Complete response text, including any line breaks.
+     */
     private void addEpiMessage(String message) {
         dialogContainer.getChildren().add(DialogBox.epi(message));
     }

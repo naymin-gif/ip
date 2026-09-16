@@ -14,7 +14,12 @@ public class EpiApplication extends Application {
     private static final double INITIAL_WINDOW_WIDTH = 600;
     private static final double INITIAL_WINDOW_HEIGHT = 700;
 
-    /** Loads the main FXML view and displays the application window. */
+    /**
+     * Loads the main FXML view and displays the resizable Epi application window.
+     *
+     * @param stage Primary stage supplied by the JavaFX runtime.
+     * @throws IOException If the FXML view cannot be loaded.
+     */
     @Override
     public void start(Stage stage) throws IOException {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/epi/gui/MainWindow.fxml"));

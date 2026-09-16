@@ -11,7 +11,7 @@ deadline return book /by 2019-12-02 1800
 event project meeting /from 2019-12-02 1400 /to 2019-12-02 1600
 ```
 
-For example, the deadline is displayed as `Dec 02 2019, 6:00 PM` in an English locale. Words such as `Sunday` are not supported yet. `find` already supports case-insensitive partial description matching and displays the original list numbers. With no matches, the current response contains only the search heading.
+For example, the deadline is displayed as `Dec 02 2019, 6:00 PM` in an English locale. Words such as `Sunday` are not supported yet. `find` supports case-insensitive partial description matching and displays the original list numbers. With no matches, including when the task list is empty, `find movie` returns `Meow! I couldn't find any tasks matching "movie".` instead of a search heading. This is a normal informational reply, not a red error card, and does not change or save tasks. A missing keyword (`find` by itself) still produces a validation error.
 
 The selected category C extension is **C-Sort only**. Epi still uses `data/epi.txt` relative to its working directory, in the existing pipe-delimited format. Other C extensions, including `--data` and duplicate rejection, are not included. **A-MoreErrorHandling** adds the validation and file protections described below.
 
@@ -132,7 +132,7 @@ Run the console command only after the Gradle checks succeed. PowerShell 7 (`pws
 
 ### What is checked
 
-- JUnit covers parsing, task operations, complete command replies, persistence/reloads, repeated mark/unmark without saving, chronological sorting, stable ties, undated/completed tasks, unchanged saved files, and original task numbers after sorting. Error-handling tests cover strict dates, malformed fields, task-number limits, damaged records, denied I/O, unsupported atomic replacement, external changes, and rollback of every mutating command.
+- JUnit covers parsing, task operations, complete command replies, persistence/reloads, repeated mark/unmark without saving, no-match searches on empty/populated lists, chronological sorting, stable ties, undated/completed tasks, unchanged saved files, and original task numbers after sorting. Error-handling tests cover strict dates, malformed fields, task-number limits, damaged records, denied I/O, unsupported atomic replacement, external changes, and rollback of every mutating command.
 - `DialogBoxTest` covers responsive width and centred avatar-crop calculations without starting JavaFX.
 - The automated console cases live in [tests/test-plan.md](../tests/test-plan.md). The Markdown is test input, not merely illustrative output: the runner reads and executes its cases.
 - Every console case gets a separate temporary working directory. Neither your real `data/epi.txt` nor another case's data is used.
@@ -146,7 +146,7 @@ Run the console command only after the Gradle checks succeed. PowerShell 7 (`pws
 - Checkstyle reports: `build/reports/checkstyle/main.html` and `test.html`.
 - Console transcript: `build/reports/ui-tests/transcript.txt`.
 
-The transcript is replaced on each run. Successful temporary console directories are cleaned up; failed-session files are retained at the location printed in the transcript. A successful run ends with `All 22 UI tests passed.` Both Gradle and the console script return a nonzero exit code on failure.
+The transcript is replaced on each run. Successful temporary console directories are cleaned up; failed-session files are retained at the location printed in the transcript. A successful run ends with `All 23 UI tests passed.` Both Gradle and the console script return a nonzero exit code on failure.
 
 After relevant code changes, update the JUnit tests and console plan, retaining the approximately 50% highest-value-method JUnit coverage target. This is a prioritization target, not a claimed measured line-coverage percentage. The console runner does not open JavaFX windows.
 

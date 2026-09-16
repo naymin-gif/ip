@@ -27,9 +27,11 @@ Maintain the project's approximately 50% highest-value-method target, prioritizi
 - `TaskListTest` and `TaskTest`: collection/order/search/status tests, plus date sorting across years/times/types, event-start ordering, stable ties, completed/undated tasks, empty/single lists, and a structurally independent sorted copy.
 - `DialogBoxTest`: responsive bot/user content widths, initial/tiny layout widths, expansion beyond the old fixed limit, and centred square crops for portrait/landscape/square/fractional image sizes.
 
-The original 17 cases remain unchanged; cases 18-21 protect stricter validation and recovery after rejected commands. `EpiTest` also verifies that every mutating command rolls back on failed saves, startup recovery blocks writes, and error classification does not depend on message text. `TaskListTest` checks independent snapshots, including completion flags, so failed status changes cannot leak into live tasks. See [gui-test-plan.md](gui-test-plan.md) for visible file warnings and the separate JavaFX scene/manual checks. File fixtures belong in JUnit and the isolated GUI smoke runner; the console cases below always start with a fresh empty file.
+Cases 1-17 cover basic commands and chronological sorting; case 8 now checks explicit no-match feedback. Cases 18-21 protect stricter validation and recovery after rejected commands. `EpiTest` also verifies that every mutating command rolls back on failed saves, startup recovery blocks writes, and error classification does not depend on message text. `TaskListTest` checks independent snapshots, including completion flags, so failed status changes cannot leak into live tasks. See [gui-test-plan.md](gui-test-plan.md) for visible file warnings and the separate JavaFX scene/manual checks. File fixtures belong in JUnit and the isolated GUI smoke runner; the console cases below always start with a fresh empty file.
 
 Case 22 checks repeated mark/unmark feedback and unchanged task status. `TaskTest` also verifies the completion-state getter before and after repeated status changes.
+
+Case 23 checks searching an empty list, missing-keyword validation, and successful search after adding a task. `EpiTest` verifies that no-match searches are informational, preserve the keyword's case, and do not alter task data or the file's modification time.
 
 ## Shared startup
 
@@ -240,7 +242,7 @@ Meow for now. See you later!
 
 ### Aim
 
-Verify existing case-insensitive substring search, full-list numbering, and the current heading-only no-match response.
+Verify case-insensitive substring search, full-list numbering, and an explicit no-match message without a misleading search heading.
 
 ### Input
 
@@ -272,7 +274,7 @@ Now you have 4 tasks in the list.
 Here are the matching tasks in your list:
 2. [T][ ] read Book
 4. [T][ ] return book
-Here are the matching tasks in your list:
+Meow! I couldn't find any tasks matching "movie".
 Meow for now. See you later!
 ```
 
@@ -841,6 +843,35 @@ Slacking off, are we? I've marked this as not done:
 Meow! Task 1 is already marked as not done.
 [T][ ] read book
 Here is your pile of tasks:
+1. [T][ ] read book
+Meow for now. See you later!
+```
+
+## Test case 23: Search an empty list and distinguish a missing keyword
+
+### Aim
+
+Verify that searching an empty list reports no matches and preserves the supplied keyword's case. A missing keyword must still show validation guidance, and adding a task must allow a later partial search to succeed.
+
+### Input
+
+```text
+find Movie night
+find
+todo read book
+  FiNd   BOO
+bye
+```
+
+### Expected output
+
+```text
+Meow! I couldn't find any tasks matching "Movie night".
+Please provide a keyword to search for.
+More work? Fine. I have added this task:
+[T][ ] read book
+Now you have 1 tasks in the list.
+Here are the matching tasks in your list:
 1. [T][ ] read book
 Meow for now. See you later!
 ```

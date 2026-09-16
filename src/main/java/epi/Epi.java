@@ -91,12 +91,18 @@ public class Epi {
                     output.add((tasks.getIndex(task) + 1) + ". " + task);
                 }
             } else if (command.equals("find")) {
-                if (argument.trim().isEmpty()) {
+                String keyword = argument.trim();
+                if (keyword.isEmpty()) {
                     throw new EpiException("Please provide a keyword to search for.");
                 }
-                output.add("Here are the matching tasks in your list:");
-                for (Task task : tasks.find(argument.trim())) {
-                    output.add((tasks.getIndex(task) + 1) + ". " + task);
+                List<Task> matches = tasks.find(keyword);
+                if (matches.isEmpty()) {
+                    output.add("Meow! I couldn't find any tasks matching \"" + keyword + "\".");
+                } else {
+                    output.add("Here are the matching tasks in your list:");
+                    for (Task task : matches) {
+                        output.add((tasks.getIndex(task) + 1) + ". " + task);
+                    }
                 }
             } else if (command.equals("delete")) {
                 int taskIdx = parser.parseTaskIndex(argument, tasks);

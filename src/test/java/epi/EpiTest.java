@@ -183,14 +183,46 @@ class EpiTest {
         epi.processCommand("todo cook dinner");
         epi.processCommand("todo return book");
 
-        assertEquals(List.of("Here are the matching tasks in your list:",
-                "2. [T][ ] read Book", "4. [T][ ] return book"), epi.processCommand("find BOO"));
+        assertEquals(new CommandResult(List.of("Here are the matching tasks in your list:",
+                "2. [T][ ] read Book", "4. [T][ ] return book"), false), epi.processCommandResult("find BOO"));
     }
 
     @Test
-    void processCommand_findNoMatches_returnsCurrentHeadingOnly() {
+    void processCommand_findNoMatches_returnsInformationWithoutChangingTasks() throws IOException {
         epi.processCommand("todo read book");
-        assertEquals(List.of("Here are the matching tasks in your list:"), epi.processCommand("find movie"));
+        List<String> original = epi.processCommand("list");
+        String saved = Files.readString(taskFile);
+        Files.setLastModifiedTime(taskFile, FileTime.from(Instant.parse("2000-01-01T00:00:00Z")));
+        FileTime lastModified = Files.getLastModifiedTime(taskFile);
+
+        for (String keyword : List.of("movie", "Movie night")) {
+            CommandResult result = epi.processCommandResult("  FiNd   " + keyword + "  ");
+            assertFalse(result.error());
+            assertEquals(List.of("Meow! I couldn't find any tasks matching \"" + keyword + "\"."), result.lines());
+            assertEquals(original, epi.processCommand("list"));
+            assertEquals(saved, Files.readString(taskFile));
+            assertEquals(lastModified, Files.getLastModifiedTime(taskFile));
+        }
+    }
+
+    @Test
+    void processCommand_findInEmptyList_returnsInformationalNoMatch() throws IOException {
+        Files.setLastModifiedTime(taskFile, FileTime.from(Instant.parse("2000-01-01T00:00:00Z")));
+        FileTime lastModified = Files.getLastModifiedTime(taskFile);
+
+        assertEquals(new CommandResult(List.of("Meow! I couldn't find any tasks matching \"book\"."), false),
+                epi.processCommandResult("find book"));
+        assertEquals(List.of("Purr! There is no task in your list"), epi.processCommand("list"));
+        assertEquals("", Files.readString(taskFile));
+        assertEquals(lastModified, Files.getLastModifiedTime(taskFile));
+    }
+
+    @Test
+    void processCommand_findWithoutKeyword_returnsValidationError() {
+        for (String command : List.of("find", "  FiNd   ", "find\t ")) {
+            assertEquals(new CommandResult(List.of("Please provide a keyword to search for."), true),
+                    epi.processCommandResult(command), command);
+        }
     }
 
     @Test

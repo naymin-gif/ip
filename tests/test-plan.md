@@ -33,6 +33,13 @@ Case 22 checks repeated mark/unmark feedback and unchanged task status. `TaskTes
 
 Case 23 checks searching an empty list, missing-keyword validation, and successful search after adding a task. `EpiTest` verifies that no-match searches are informational, preserve the keyword's case, and do not alter task data or the file's modification time.
 
+The command-handler refactor preserves all existing responses and behavior.
+`EpiTest` checks explicit success/error flags as well as response text, argument
+validation before empty-list checks, and distinct numbers for identical search
+results. Case 24 exercises those routing and numbering boundaries in one console
+session. Keep testing private handlers through Epi's public command API; no
+private method needs to be exposed for tests.
+
 ## Shared startup
 
 ### Startup output
@@ -873,5 +880,54 @@ More work? Fine. I have added this task:
 Now you have 1 tasks in the list.
 Here are the matching tasks in your list:
 1. [T][ ] read book
+Meow for now. See you later!
+```
+
+## Test case 24: Preserve validation order and duplicate search numbers
+
+### Aim
+
+Verify that invalid arguments are rejected before empty-list checks, malformed
+bye does not exit, and identical tasks keep distinct full-list numbers when
+searching before and after deletion.
+
+### Input
+
+```text
+list extra
+sort date desc
+sort date
+bye extra
+todo read book
+todo read book
+find book
+mark 2
+delete 1
+find book
+bye
+```
+
+### Expected output
+
+```text
+Meow! Use: list
+Meow! Use: sort date
+Purr! There is no task in your list
+Meow! Use: bye
+More work? Fine. I have added this task:
+[T][ ] read book
+Now you have 1 tasks in the list.
+More work? Fine. I have added this task:
+[T][ ] read book
+Now you have 2 tasks in the list.
+Here are the matching tasks in your list:
+1. [T][ ] read book
+2. [T][ ] read book
+About time you finished something. I've marked it as done:
+[T][X] read book
+Noted, I'll remove that from the task pile
+Now you have 1 tasks in the list
+Here are the matching tasks in your list:
+1. [T][X] read book
 Meow for now. See you later!
 ```

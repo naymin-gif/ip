@@ -43,3 +43,13 @@ Maintain a test coverage target of approximately 50% by prioritizing JUnit tests
 ## Java coding standard
 
 All Java code in this project must follow the project-specific `seedu-java-coding-standard` skill, based on the SE-EDU intermediate Java coding conventions. Apply it when creating, reviewing, or modifying code, and correct relevant style violations without changing behavior.
+
+## Code readability
+
+Keep methods focused and at a consistent level of abstraction (SLAP).
+Review methods longer than approximately 30 lines for meaningful extraction;
+this is a review trigger, not a hard limit. Prefer named helpers for cohesive
+operations, consolidate duplicated logic, and remove unused methods. Do not
+split code merely to reduce line counts or introduce unnecessary abstractions.
+For behavior-preserving refactors, verify replies, error classification, task
+numbering, and persistence through the public API and the `test-ui` skill.

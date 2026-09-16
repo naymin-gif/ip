@@ -58,102 +58,16 @@ public class Epi {
         return storage.getWarnings();
     }
 
-    /** Processes a command, distinguishing errors from successful replies without examining their wording. */
+    /**
+     * Processes a command and converts failures into responses shared by the CLI and GUI.
+     *
+     * @param input The user's command.
+     * @return Complete reply lines and an explicit error flag, independent of their wording.
+     */
     public CommandResult processCommandResult(String input) {
         assert input != null : "A command must be provided to Epi";
-        List<String> output = new ArrayList<>();
         try {
-            String[] commandParts = parser.parseInput(input);
-            assert commandParts.length > 0 : "The parser must return a command part";
-            String command = commandParts[0].toLowerCase(Locale.ROOT);
-            String argument = commandParts.length > 1 ? commandParts[1] : "";
-            if (command.equals("bye")) {
-                requireNoArgument(command, argument);
-                output.add("Meow for now. See you later!");
-            } else if (command.equals("list")) {
-                requireNoArgument(command, argument);
-                if (tasks.size() == 0) {
-                    throw new EpiException("Purr! There is no task in your list");
-                }
-                output.add("Here is your pile of tasks:");
-                for (int i = 0; i < tasks.size(); i++) {
-                    output.add((i + 1) + ". " + tasks.get(i));
-                }
-            } else if (command.equals("sort")) {
-                if (!argument.trim().equalsIgnoreCase("date")) {
-                    throw new EpiException("Meow! Use: sort date");
-                }
-                if (tasks.size() == 0) {
-                    throw new EpiException("Purr! There is no task in your list");
-                }
-                output.add("Here is your pile of tasks, sorted by date (original task numbers):");
-                for (Task task : tasks.getSortedByDate()) {
-                    output.add((tasks.getIndex(task) + 1) + ". " + task);
-                }
-            } else if (command.equals("find")) {
-                String keyword = argument.trim();
-                if (keyword.isEmpty()) {
-                    throw new EpiException("Please provide a keyword to search for.");
-                }
-                List<Task> matches = tasks.find(keyword);
-                if (matches.isEmpty()) {
-                    output.add("Meow! I couldn't find any tasks matching \"" + keyword + "\".");
-                } else {
-                    output.add("Here are the matching tasks in your list:");
-                    for (Task task : matches) {
-                        output.add((tasks.getIndex(task) + 1) + ". " + task);
-                    }
-                }
-            } else if (command.equals("delete")) {
-                int taskIdx = parser.parseTaskIndex(argument, tasks);
-                assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
-                applyChange(updated -> updated.delete(taskIdx));
-                output.add("Noted, I'll remove that from the task pile");
-                output.add("Now you have " + tasks.size() + " tasks in the list");
-            } else if (command.equals("mark") || command.equals("unmark")) {
-                int taskIdx = parser.parseTaskIndex(argument, tasks);
-                assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
-                boolean requestedDone = command.equals("mark");
-                if (tasks.get(taskIdx).isDone() == requestedDone) {
-                    String message = requestedDone
-                            ? "Purr! Task " + (taskIdx + 1) + " is already marked as done."
-                            : "Meow! Task " + (taskIdx + 1) + " is already marked as not done.";
-                    return new CommandResult(List.of(message, tasks.get(taskIdx).toString()), false);
-                }
-                applyChange(updated -> {
-                    if (requestedDone) {
-                        updated.get(taskIdx).markAsDone();
-                    } else {
-                        updated.get(taskIdx).markAsUndone();
-                    }
-                });
-                if (requestedDone) {
-                    output.add("About time you finished something. I've marked it as done:");
-                } else {
-                    output.add("Slacking off, are we? I've marked this as not done:");
-                }
-                output.add(tasks.get(taskIdx).toString());
-            } else if (command.equals("todo")) {
-                Task task = parser.parseTodo(argument);
-                applyChange(updated -> updated.add(task));
-                output.add("More work? Fine. I have added this task:");
-                output.add(tasks.get(tasks.size() - 1).toString());
-                output.add("Now you have " + tasks.size() + " tasks in the list.");
-            } else if (command.equals("deadline")) {
-                Task task = parser.parseDeadline(argument);
-                applyChange(updated -> updated.add(task));
-                output.add("A deadline? Better not miss it. I have added this task:");
-                output.add(tasks.get(tasks.size() - 1).toString());
-                output.add("Now you have " + tasks.size() + " tasks in the list.");
-            } else if (command.equals("event")) {
-                Task task = parser.parseEvent(argument);
-                applyChange(updated -> updated.add(task));
-                output.add("An event? I hope there will be treats. I have added this task:");
-                output.add(tasks.get(tasks.size() - 1).toString());
-                output.add("Now you have " + tasks.size() + " tasks in the list.");
-            } else {
-                throw new EpiException("I do not understand what that means, Human.");
-            }
+            return new CommandResult(executeCommand(input), false);
         } catch (EpiException e) {
             return new CommandResult(List.of(e.getMessage()), true);
         } catch (NumberFormatException e) {
@@ -164,7 +78,143 @@ public class Epi {
         } catch (IllegalArgumentException e) {
             return new CommandResult(List.of(e.getMessage()), true);
         }
-        return new CommandResult(output, false);
+    }
+
+    /** Parses the command word and delegates to its handler without formatting replies here. */
+    private List<String> executeCommand(String input) throws EpiException {
+        String[] commandParts = parser.parseInput(input);
+        assert commandParts.length > 0 : "The parser must return a command part";
+        String command = commandParts[0].toLowerCase(Locale.ROOT);
+        String argument = commandParts.length > 1 ? commandParts[1] : "";
+        return switch (command) {
+            case "bye" -> handleBye(argument);
+            case "list" -> handleList(argument);
+            case "sort" -> handleSort(argument);
+            case "find" -> handleFind(argument);
+            case "delete" -> handleDelete(argument);
+            case "mark" -> handleStatusChange(argument, true);
+            case "unmark" -> handleStatusChange(argument, false);
+            case "todo" -> handleTodo(argument);
+            case "deadline" -> handleDeadline(argument);
+            case "event" -> handleEvent(argument);
+            default -> throw new EpiException("I do not understand what that means, Human.");
+        };
+    }
+
+    /** Validates a farewell command; the calling interface decides whether to exit. */
+    private List<String> handleBye(String argument) throws EpiException {
+        requireNoArgument("bye", argument);
+        return List.of("Meow for now. See you later!");
+    }
+
+    /** Lists every task in its original order after validating the command. */
+    private List<String> handleList(String argument) throws EpiException {
+        requireNoArgument("list", argument);
+        requireTasks();
+        List<String> output = new ArrayList<>();
+        output.add("Here is your pile of tasks:");
+        for (int i = 0; i < tasks.size(); i++) {
+            output.add((i + 1) + ". " + tasks.get(i));
+        }
+        return output;
+    }
+
+    /** Displays tasks chronologically without changing the saved order or task numbers. */
+    private List<String> handleSort(String argument) throws EpiException {
+        if (!argument.trim().equalsIgnoreCase("date")) {
+            throw new EpiException("Meow! Use: sort date");
+        }
+        requireTasks();
+        return formatTaskView("Here is your pile of tasks, sorted by date (original task numbers):",
+                tasks.getSortedByDate());
+    }
+
+    /** Searches descriptions and reports a normal informational reply when nothing matches. */
+    private List<String> handleFind(String argument) throws EpiException {
+        String keyword = argument.trim();
+        if (keyword.isEmpty()) {
+            throw new EpiException("Please provide a keyword to search for.");
+        }
+        List<Task> matches = tasks.find(keyword);
+        if (matches.isEmpty()) {
+            return List.of("Meow! I couldn't find any tasks matching \"" + keyword + "\".");
+        }
+        return formatTaskView("Here are the matching tasks in your list:", matches);
+    }
+
+    /** Formats a filtered or sorted view using each task's original full-list number. */
+    private List<String> formatTaskView(String heading, List<Task> displayedTasks) {
+        List<String> output = new ArrayList<>();
+        output.add(heading);
+        for (Task task : displayedTasks) {
+            output.add((tasks.getIndex(task) + 1) + ". " + task);
+        }
+        return output;
+    }
+
+    /** Removes a task and confirms the new count only after saving succeeds. */
+    private List<String> handleDelete(String argument) throws EpiException {
+        int taskIdx = parseTaskIndex(argument);
+        applyChange(updated -> updated.delete(taskIdx));
+        return List.of("Noted, I'll remove that from the task pile",
+                "Now you have " + tasks.size() + " tasks in the list");
+    }
+
+    /** Applies the requested completion status, avoiding a save when it is already set. */
+    private List<String> handleStatusChange(String argument, boolean isDone) throws EpiException {
+        int taskIdx = parseTaskIndex(argument);
+        if (tasks.get(taskIdx).isDone() == isDone) {
+            String message = isDone
+                    ? "Purr! Task " + (taskIdx + 1) + " is already marked as done."
+                    : "Meow! Task " + (taskIdx + 1) + " is already marked as not done.";
+            return List.of(message, tasks.get(taskIdx).toString());
+        }
+        applyChange(updated -> {
+            if (isDone) {
+                updated.get(taskIdx).markAsDone();
+            } else {
+                updated.get(taskIdx).markAsUndone();
+            }
+        });
+        String message = isDone
+                ? "About time you finished something. I've marked it as done:"
+                : "Slacking off, are we? I've marked this as not done:";
+        return List.of(message, tasks.get(taskIdx).toString());
+    }
+
+    /** Parses a todo and supplies its task-specific confirmation. */
+    private List<String> handleTodo(String argument) throws EpiException {
+        return addTask(parser.parseTodo(argument), "More work? Fine. I have added this task:");
+    }
+
+    /** Parses a deadline and supplies its task-specific confirmation. */
+    private List<String> handleDeadline(String argument) throws EpiException {
+        return addTask(parser.parseDeadline(argument), "A deadline? Better not miss it. I have added this task:");
+    }
+
+    /** Parses an event and supplies its task-specific confirmation. */
+    private List<String> handleEvent(String argument) throws EpiException {
+        return addTask(parser.parseEvent(argument), "An event? I hope there will be treats. I have added this task:");
+    }
+
+    /** Saves a new task before returning the shared confirmation lines for either interface. */
+    private List<String> addTask(Task task, String message) throws EpiException {
+        applyChange(updated -> updated.add(task));
+        return List.of(message, task.toString(), "Now you have " + tasks.size() + " tasks in the list.");
+    }
+
+    /** Checks the parser's index contract before a task is changed or removed. */
+    private int parseTaskIndex(String argument) throws EpiException {
+        int taskIdx = parser.parseTaskIndex(argument, tasks);
+        assert taskIdx >= 0 && taskIdx < tasks.size() : "Parser returned an invalid task index";
+        return taskIdx;
+    }
+
+    /** Rejects list views that require at least one task. */
+    private void requireTasks() throws EpiException {
+        if (tasks.size() == 0) {
+            throw new EpiException("Purr! There is no task in your list");
+        }
     }
 
     /** Publishes a task change in memory only after the complete new snapshot has been saved. */
@@ -198,13 +248,6 @@ public class Epi {
     private boolean isExitCommand(String input) {
         String[] commandParts = parser.parseInput(input);
         return commandParts.length == 1 && commandParts[0].equalsIgnoreCase("bye");
-    }
-
-    /** Displays the common confirmation shown after adding a task. */
-    private void showAddedTask(String message) {
-        ui.showLine(message);
-        ui.showLine("       " + tasks.get(tasks.size() - 1));
-        ui.showLine("     Now you have " + tasks.size() + " tasks in the list.");
     }
 
     /** Starts Epi using its default task-file location. */

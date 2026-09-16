@@ -40,26 +40,26 @@ class EpiTest {
 
     @Test
     void processCommand_addMixedTasks_returnsCompleteResponsesInOrder() {
-        assertEquals(List.of(
+        assertEquals(new CommandResult(List.of(
                 "More work? Fine. I have added this task:",
                 "[T][ ] read book",
-                "Now you have 1 tasks in the list."), epi.processCommand("todo read book"));
-        assertEquals(List.of(
+                "Now you have 1 tasks in the list."), false), epi.processCommandResult("todo read book"));
+        assertEquals(new CommandResult(List.of(
                 "A deadline? Better not miss it. I have added this task:",
                 "[D][ ] return book (by: Dec 02 2019, 6:00 PM)",
-                "Now you have 2 tasks in the list."),
-                epi.processCommand("deadline return book /by 2019-12-02 1800"));
-        assertEquals(List.of(
+                "Now you have 2 tasks in the list."), false),
+                epi.processCommandResult("deadline return book /by 2019-12-02 1800"));
+        assertEquals(new CommandResult(List.of(
                 "An event? I hope there will be treats. I have added this task:",
                 "[E][ ] meeting (from: Dec 02 2019, 2:00 PM to: Dec 02 2019, 4:00 PM)",
-                "Now you have 3 tasks in the list."),
-                epi.processCommand("event meeting /from 2019-12-02 1400 /to 2019-12-02 1600"));
+                "Now you have 3 tasks in the list."), false),
+                epi.processCommandResult("event meeting /from 2019-12-02 1400 /to 2019-12-02 1600"));
         List<String> expected = List.of(
                 "Here is your pile of tasks:",
                 "1. [T][ ] read book",
                 "2. [D][ ] return book (by: Dec 02 2019, 6:00 PM)",
                 "3. [E][ ] meeting (from: Dec 02 2019, 2:00 PM to: Dec 02 2019, 4:00 PM)");
-        assertEquals(expected, epi.processCommand("list"));
+        assertEquals(new CommandResult(expected, false), epi.processCommandResult("list"));
         assertEquals(expected, new Epi(taskFile.toString(), false).processCommand("list"));
     }
 
@@ -188,6 +188,16 @@ class EpiTest {
     }
 
     @Test
+    void processCommandResult_findIdenticalTasks_keepsDistinctOriginalNumbers() {
+        epi.processCommand("todo notes");
+        epi.processCommand("todo read book");
+        epi.processCommand("todo read book");
+
+        assertEquals(new CommandResult(List.of("Here are the matching tasks in your list:",
+                "2. [T][ ] read book", "3. [T][ ] read book"), false), epi.processCommandResult("find book"));
+    }
+
+    @Test
     void processCommand_findNoMatches_returnsInformationWithoutChangingTasks() throws IOException {
         epi.processCommand("todo read book");
         List<String> original = epi.processCommand("list");
@@ -243,7 +253,8 @@ class EpiTest {
                 Map.entry("", "I do not understand what that means, Human."));
 
         for (Map.Entry<String, String> error : errors.entrySet()) {
-            assertEquals(List.of(error.getValue()), epi.processCommand(error.getKey()), error.getKey());
+            assertEquals(new CommandResult(List.of(error.getValue()), true),
+                    epi.processCommandResult(error.getKey()), error.getKey());
             assertEquals(expectedTasks, epi.processCommand("list"), error.getKey());
             assertEquals(saved, Files.readString(taskFile), error.getKey());
         }
@@ -252,9 +263,10 @@ class EpiTest {
     @Test
     void processCommand_invalidDates_rejectsTasksWithoutSaving() throws IOException {
         String expected = "Invalid date format! Please use: yyyy-MM-dd HHmm (e.g., 2019-12-02 1800)";
-        assertEquals(List.of(expected), epi.processCommand("deadline homework /by Sunday"));
-        assertEquals(List.of(expected),
-                epi.processCommand("event meeting /from 2019-12-02 1400 /to who knows"));
+        assertEquals(new CommandResult(List.of(expected), true),
+                epi.processCommandResult("deadline homework /by Sunday"));
+        assertEquals(new CommandResult(List.of(expected), true),
+                epi.processCommandResult("event meeting /from 2019-12-02 1400 /to who knows"));
         assertEquals(List.of("Purr! There is no task in your list"), epi.processCommand("list"));
         assertEquals("", Files.readString(taskFile));
     }
@@ -274,6 +286,27 @@ class EpiTest {
         epi.processCommand("find book");
         assertEquals(List.of("Meow for now. See you later!"), epi.processCommand("bye"));
         assertEquals(saved, Files.readString(taskFile));
+    }
+
+    @Test
+    void processCommandResult_invalidArgumentsOnEmptyList_reportsUsageBeforeEmptyList() throws IOException {
+        Map<String, String> errors = Map.of(
+                "  LiSt   extra  ", "Meow! Use: list",
+                "  ByE   extra  ", "Meow! Use: bye",
+                "sort", "Meow! Use: sort date",
+                "sort date desc", "Meow! Use: sort date");
+
+        for (Map.Entry<String, String> error : errors.entrySet()) {
+            assertEquals(new CommandResult(List.of(error.getValue()), true),
+                    epi.processCommandResult(error.getKey()), error.getKey());
+        }
+        assertEquals(new CommandResult(List.of("Purr! There is no task in your list"), true),
+                epi.processCommandResult("list"));
+        assertEquals(new CommandResult(List.of("Purr! There is no task in your list"), true),
+                epi.processCommandResult("sort date"));
+        assertEquals(new CommandResult(List.of("Meow for now. See you later!"), false),
+                epi.processCommandResult("  BYE  "));
+        assertEquals("", Files.readString(taskFile));
     }
 
     @Test

@@ -9,16 +9,16 @@
 ## Quick start
 
 1. Install **Java 25**. In a terminal, run `java -version` and check that it reports version 25.
-2. Download **`duke.jar`** from **Assets** on the [latest release page](https://github.com/naymin-gif/ip/releases/latest). Choose the JAR, not a source-code ZIP or TAR archive.
+2. Download **`epi.jar`** from **Assets** on the [latest release page](https://github.com/naymin-gif/ip/releases/latest). Choose the JAR, not a source-code ZIP or TAR archive.
 3. Place the JAR in an empty folder you can write to. Open a terminal **in that same folder**, then run:
 
    ```bash
-   java -jar "duke.jar"
+   java -jar "epi.jar"
    ```
 
 4. Type `todo read book` into the command box, then press **Enter** or click **Send**. Try `list` to see your task.
 
-The download's filename is `duke.jar`; the application is **Epi**. This fat JAR includes JavaFX, so you do not need to install JavaFX or Gradle separately.
+The fat JAR includes JavaFX, so you do not need to install JavaFX or Gradle separately.
 
 You can resize the window and scroll back through the conversation. A new installation starts with an empty task list; the screenshot shows example tasks.
 

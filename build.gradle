@@ -72,7 +72,7 @@ jar {
 }
 
 shadowJar {
-    archiveFileName = 'duke.jar'
+    archiveFileName = 'epi.jar'
 }
 
 run {

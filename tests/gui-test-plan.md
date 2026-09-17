@@ -27,7 +27,7 @@ Reports: `build/reports/gui-smoke/compact.png`, `default.png`, `wide.png`, `long
 
 ## Manual desktop checks
 
-Use a new empty folder with a freshly built JAR (`./gradlew shadowJar`, then copy `build/libs/duke.jar` there and run `java -jar duke.jar` with Java 25). This keeps synthetic tasks out of your personal data file. Start with no tasks and use the inputs below.
+Use a new empty folder with a freshly built JAR (`./gradlew clean shadowJar`, then copy `build/libs/epi.jar` there and run `java -jar "epi.jar"` with Java 25). A clean build should produce only `epi.jar` in `build/libs`, with JavaFX and the GUI resources bundled. This keeps synthetic tasks out of your personal data file. Start with no tasks and use the inputs below.
 
 ### 1. Initial window and visual hierarchy
 

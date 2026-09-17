@@ -8,38 +8,39 @@
 
 ## Quick start
 
-> **Download status:** The published [v0.1 release](https://github.com/naymin-gif/ip/releases/tag/A-Jar) predates the current GUI and features. Use the current source below until an updated JAR is available.
-
 1. Install **Java 25**. In a terminal, run `java -version` and check that it reports version 25.
-2. [Download the current source](https://github.com/naymin-gif/ip/archive/refs/heads/master.zip) and extract it, or use your existing project checkout.
-3. Open a terminal in the extracted project folder—the folder containing `gradlew`, `gradlew.bat`, and `build.gradle`. Launch Epi with the command for your terminal:
-
-   **Git Bash / macOS / Linux:**
+2. Download **`duke.jar`** from **Assets** on the [latest release page](https://github.com/naymin-gif/ip/releases/latest). Choose the JAR, not a source-code ZIP or TAR archive.
+3. Place the JAR in an empty folder you can write to. Open a terminal **in that same folder**, then run:
 
    ```bash
-   ./gradlew run
+   java -jar "duke.jar"
    ```
 
-   **Windows PowerShell / Command Prompt:**
-
-   ```powershell
-   .\gradlew.bat run
-   ```
-
-   The first launch may take longer while dependencies download. If Gradle reports the wrong Java version, see [Troubleshooting](#troubleshooting).
 4. Type `todo read book` into the command box, then press **Enter** or click **Send**. Try `list` to see your task.
+
+The download's filename is `duke.jar`; the application is **Epi**. This fat JAR includes JavaFX, so you do not need to install JavaFX or Gradle separately.
 
 You can resize the window and scroll back through the conversation. A new installation starts with an empty task list; the screenshot shows example tasks.
 
-### Running a current JAR
+> **Compatibility:** The current release has been tested on Windows x86-64 with Java 25. macOS/Linux smoke testing is pending. The bundled native libraries target x86-64; native ARM Java installations, including Apple Silicon, are not supported by this JAR.
 
-If you have a JAR built from the current source, place it in a folder you can write to. Open a terminal **in that same folder**, then run:
+### Alternative: run from source
+
+With Java 25 installed, [download the current source](https://github.com/naymin-gif/ip/archive/refs/heads/master.zip) and extract it, or use your existing project checkout. Open a terminal in the project folder—the folder containing `gradlew`, `gradlew.bat`, and `build.gradle`—and use the command for your terminal:
+
+**Git Bash / macOS / Linux:**
 
 ```bash
-java -jar "duke.jar"
+./gradlew run
 ```
 
-The current build's filename is `duke.jar`; the application is **Epi**. Substitute the actual filename if it differs. A current fat JAR includes JavaFX, so you do not need to install JavaFX separately.
+**Windows PowerShell / Command Prompt:**
+
+```powershell
+.\gradlew.bat run
+```
+
+The first launch may take longer while dependencies download. If Gradle reports the wrong Java version, see [Troubleshooting](#troubleshooting). Running from source uses the same native-library configuration and does not add ARM support.
 
 ## Command basics
 

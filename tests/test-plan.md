@@ -16,6 +16,21 @@ The expected output for each case is the shared startup output followed by its c
 
 On the first failure, stop, show the actual and expected output, and retain the failed run's temporary files. Successful run directories are removed. Every run records the console input/output at `build/reports/ui-tests/transcript.txt` (the latest run replaces that report).
 
+### Continuous integration
+
+The [Java CI workflow](../.github/workflows/gradle.yml) runs Gradle `check`
+and `shadowJar` with Java 25 on Windows, Linux, and Intel macOS. This runs
+JUnit and Checkstyle and builds the fat JAR without opening the GUI.
+The Windows job also runs this entire console plan through the existing
+PowerShell runner; the other jobs do not run its Windows-only wrapper call.
+Console expectations and the JUnit coverage target are unchanged.
+
+Review all matrix jobs in GitHub's **Actions > Java CI** page. Download the
+`test-reports-<runner>` artifact for JUnit and Checkstyle reports, plus the
+console transcript on Windows. Reports are retained for seven days even
+when checks fail. Complete the separate GUI/released-JAR smoke tests too;
+CI does not replace the manual checks in [gui-test-plan.md](gui-test-plan.md).
+
 ## JUnit coverage
 
 Maintain the project's approximately 50% highest-value-method target, prioritizing core behavior rather than a line-coverage percentage. After relevant changes, update the tests and this plan, then run Gradle `test checkstyleMain checkstyleTest` and the console runner.
